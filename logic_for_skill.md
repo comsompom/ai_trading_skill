@@ -1,40 +1,25 @@
 # Logic for Skill
 
-## Indicator Understanding and Best Use
+This document describes only the indicators and strategy logic currently implemented in the app. It does not list MT4 files that are present in the repository but not yet ported into the Python decision engine.
 
-The proposed indicators should not all be used as equal entry signals. The strongest combined logic is to separate them into roles: market regime, structure, momentum confirmation, entry trigger, risk/target context, and validation.
+## Implemented Indicators And Features
 
-| Indicator | What It Detects | Best Thing to Use in Combined Logic |
-| --- | --- | --- |
-| `ABCD_hand_v4.mq4` | Manual ABCD swing projection. It stores A, B, C, and projected D, with D calculated from `C + PLevel * abs(B - A)` and Fibonacci levels. | Use as optional harmonic target/context after swing points are available. Do not make it a primary automated signal because it depends on manual point placement. |
-| `APEX_Indi.mq4` | A staged A-P-E-X candle sequence that confirms a bullish or bearish breakout after a setup, pullback, and expansion leg. | Use the final `X` event as a strong pattern trigger, because it requires multiple candle conditions before confirming continuation. |
-| `Binary_Options.mq4` | H1 session breakout/reversal logic between 09:00 and 18:00 with stop-loss buffers. | Use its high/low invalidation idea as a risk reference. Its fixed session window is weaker for 24/7 crypto, so it should be secondary or disabled unless a user selects session-based trading. |
-| `Candlestick - Hammer and Shooting Star Signal.mq4` | Hammer and shooting-star reversal candles at local lows/highs, using wick-to-body ratios and minimum candle size. | Use hammer as bullish reversal trigger and shooting star as bearish reversal trigger, only near support/resistance, VWAP, Fibonacci, or fractal levels. |
-| `De_Mark_Support_V2.mq4` | DeMark-style support/resistance trendline breakout with TD1/TD2/TD3 breakout checks and target projection. | Use support/resistance breakout as a high-value structure confirmation and use its projected target as take-profit context. |
-| `FIBO_Simple_v3.mq4` | Draws Fibonacci levels from higher-timeframe anchor bars, with standard or custom extension levels. | Use levels as confluence zones: entry quality improves near retracement/extension levels, and exits can target the next level. |
-| `Fisher_Yur4ik3-a_v6_MTF.mq4` | Fisher transform with upper/lower thresholds and higher-timeframe confirmation. Buy occurs when Fisher crosses up through the upper level; sell occurs when it crosses down through the lower level. | Use as the main regime and momentum filter. It should gate trades so BUY needs bullish Fisher alignment and SELL needs bearish Fisher alignment. |
-| `FX5_MACD_Divergence_V1_1_2.mq4` | Classical and reverse MACD divergence from MACD peaks/troughs versus price highs/lows. | Use classical divergence as early reversal evidence and reverse divergence as continuation evidence. It should add confidence, not trigger trades alone. |
-| `HL_Signal.mq4` | Intraday high/low session signal based on highs/lows formed between 09:00 and 18:00. | Use only as optional session structure. For crypto default logic, replace fixed hours with rolling high/low windows. |
-| `IndCandleBreakout_v3.mq4` | Candle breakout lines based on smoothed/open-derived high and low buffers, with trend and reversal arrows. | Use as a breakout trigger: BUY trend/reversal when price breaks above the dynamic high line; SELL when it breaks below the dynamic low line. |
-| `MACD_OSMA_Bar_alert.mq4` | OsMA histogram strength and direction. It marks BUY when OsMA is negative while candle is bullish, and SELL when OsMA is positive while candle is bearish; histogram slope shows acceleration/deceleration. | Use as momentum exhaustion/transition confirmation. Best feature is OsMA sign plus histogram slope, not the arrow alone. |
-| `MTF_Fractal_v2.mq4` | Higher-timeframe fractal highs and lows, optionally extended as levels. | Use fractal highs/lows as support/resistance, stop placement, and breakout validation. |
-| `Power_Candle_Alerts_v2.mq4` | Detects candles whose range is at least `Set_Alert_At_Val` times the average range of the last `Candles_Range` candles. | Use as volatility/impulse confirmation. A power candle in signal direction increases confidence; a power candle against signal direction blocks entry. |
-| `Range_n_Line_v8_1.mq4` | Range, channel, and line logic with breakout detection above/below recent range levels. | Use as a range-state detector: avoid mean-reversion entries inside compressed ranges and prefer trades after a confirmed range break. |
-| `RSI_MFI_MA3.mq4` | RSI and custom MFI compared with their combined moving average; price close direction must agree. | Use as a participation filter. BUY requires RSI and/or MFI above the RSI/MFI MA with rising close; SELL requires RSI and/or MFI below it with falling close. |
-| `Seq_Boool_Bear_v7.1.mq4` | Counts consecutive bullish or bearish candles, then signals exhaustion based on best sequence length and selected risk style. | Use as an exhaustion warning. Long bearish sequence can support reversal BUY; long bullish sequence can support reversal SELL. It should reduce confidence for late continuation entries. |
-| `VWAP_CANDLE_BREAKOUT_slope_dir_line.mq4` | VWAP breakout with candle body threshold and slope-direction-line filter. BUY requires candle crossing above VWAP with bullish body and rising slope; SELL requires crossing below VWAP with bearish body and falling slope. | Use as the primary execution trigger because it combines price location, candle body, and trend slope. |
+| Implemented feature | Source / file | Feature group | Current role in decision |
+| --- | --- | --- | --- |
+| Fisher transform | `Fisher_Yur4ik3-a_v6_MTF.mq4` ported in `indicators/custom_mql_ported/fisher_yur4ik.py` | `regime` | Provides bullish or bearish regime context from Fisher threshold direction. |
+| Rolling high/low structure | Native Python proxy in `skill/strategy_skill.py` | `structure` | Detects close above recent rolling resistance or below recent rolling support. |
+| ABCD projection | `ABCD_hand_v4.mq4` ported in `indicators/custom_mql_ported/abcd_hand.py` | `structure` | Infers A/B/C swing points, projects D as `C + PLevel * abs(B - A)`, and exposes Fibonacci levels. |
+| DeMark support/resistance | `De_Mark_Support_V2.mq4` ported in `indicators/custom_mql_ported/demark_support.py` | `structure` | Builds support/resistance trendline context, detects TD1/TD2/TD3 breakouts, and exposes target context. |
+| HL session signal | `HL_Signal.mq4` ported in `indicators/custom_mql_ported/hl_signal.py` | `structure` | Tracks 09:00-18:00 session high/low expansion and failure context. |
+| RSI/MFI participation | `RSI_MFI_MA3.mq4` ported in `indicators/custom_mql_ported/rsi_mfi_ma3.py` | `momentum` | Confirms whether RSI/MFI are above or below the combined moving average with price direction agreement. |
+| MACD OsMA | `MACD_OSMA_Bar_alert.mq4` ported in `indicators/custom_mql_ported/macd_osma.py` | `momentum` | Detects OsMA transition and slope confirmation against current candle direction. |
+| VWAP candle breakout | `VWAP_CANDLE_BREAKOUT_slope_dir_line.mq4` ported in `indicators/custom_mql_ported/vwap_candle_breakout.py` | `trigger` | Detects VWAP cross with candle-body threshold and slope-line confirmation. |
+| APEX pattern | `APEX_Indi.mq4` ported in `indicators/custom_mql_ported/apex_indi.py` | `trigger` | Detects the final `X` event after an A-P-E setup as a strong pattern trigger. |
+| Power candle impulse | `Power_Candle_Alerts_v2.mq4` style logic implemented in `skill/strategy_skill.py` | `trigger` | Confirms large directional candles based on current range versus recent average range. |
 
-## Combined Signal Model
+## Feature Signal Contract
 
-The Skill should calculate normalized features from all indicators and group them into five blocks:
-
-1. `regime`: Fisher MTF, slope direction, range state.
-2. `structure`: VWAP, DeMark lines, fractals, Fibonacci, rolling highs/lows.
-3. `momentum`: MACD divergence, OsMA, RSI/MFI.
-4. `trigger`: VWAP candle breakout, IndCandleBreakout, APEX X, hammer/shooting star, power candle.
-5. `risk_context`: stop distance, target distance, nearest opposite level, volatility expansion.
-
-Each feature returns:
+Every implemented indicator returns a normalized feature signal:
 
 ```json
 {
@@ -46,159 +31,254 @@ Each feature returns:
 }
 ```
 
-Signals are evaluated only on closed candles by default. Current-candle mode can be exposed later, but backtests should use closed candles.
+Each indicator also returns a raw values dictionary. That dictionary is included in `indicator_values` for explainability, MCP responses, Flask API responses, and backtest feature snapshots.
+
+## Feature Groups
+
+The strategy groups the implemented indicators into these blocks:
+
+```text
+regime:
+  Fisher transform
+
+structure:
+  rolling high/low structure
+  ABCD projection
+  DeMark support/resistance
+  HL session signal
+
+momentum:
+  RSI/MFI participation
+  MACD OsMA
+
+trigger:
+  VWAP candle breakout
+  APEX pattern
+  power candle impulse
+
+risk_context:
+  ATR
+  recent swing high/low
+  deterministic stop and target levels
+  configured reward-to-risk profile
+```
+
+Signals are evaluated on closed candles by default.
+
+## Scoring Model
+
+`StrategySkill._score()` calculates separate BUY and SELL scores.
+
+Score weights:
+
+```text
+buy_score / sell_score =
+  0.25 * regime_score +
+  0.25 * structure_score +
+  0.20 * momentum_score +
+  0.20 * trigger_score +
+  0.10 * risk_reward_score
+```
+
+Structure score combines:
+
+```text
+rolling high/low structure
+ABCD projection, weighted as context
+DeMark breakout, weighted as stronger structure evidence
+HL session signal, weighted as session context
+```
+
+Trigger score combines:
+
+```text
+VWAP candle breakout
+APEX X event
+power candle impulse
+```
+
+Momentum score combines:
+
+```text
+RSI/MFI participation
+MACD OsMA transition
+```
 
 ## BUY Logic
 
-Return `BUY` when all hard filters pass and the bullish score is high enough.
-
-Hard filters:
-
-- Higher-timeframe Fisher regime is bullish or recently crossed bullish.
-- Price is not directly under a strong resistance/fractal/Fibonacci/DeMark level unless the current candle closes through it.
-- Stop distance to invalidation is not larger than configured maximum risk.
-- Reward-to-risk to the nearest target is at least `1.5R`.
-- No active bearish power candle or bearish VWAP/slope breakdown in the last `N` bars.
-
-Core BUY confirmations:
-
-- VWAP candle breakout BUY: close is above VWAP, candle body exceeds the body threshold, and slope direction is rising.
-- Fisher crosses above `Upper_Level` or remains bullish on current timeframe with higher-timeframe support.
-- RSI and/or MFI is above the combined RSI/MFI MA and close is rising.
-- OsMA is improving from negative or histogram slope is rising.
-- Structure supports the entry: break above IndCandleBreakout high line, DeMark resistance breakout, range breakout, or close above recent fractal high.
-- Trigger quality improves if APEX prints final bullish `X`, hammer appears near support, or a bullish power candle confirms impulse.
-
-BUY score:
+The strategy returns `BUY` only when all implemented filters pass:
 
 ```text
-buy_score =
-  0.25 * regime_bullish_score +
-  0.25 * structure_bullish_score +
-  0.20 * momentum_bullish_score +
-  0.20 * trigger_bullish_score +
-  0.10 * risk_reward_score
+buy_score >= 0.68
+buy_score - sell_score >= 0.18
+reward_to_risk >= 1.5
+no bearish trigger blocker
 ```
 
-Decision:
+Bullish evidence can come from:
 
-- `BUY` when `buy_score >= 0.68` and `buy_score - sell_score >= 0.18`.
-- `HOLD` when score is below threshold or bullish/bearish evidence conflicts.
+```text
+Fisher bullish regime
+close above rolling resistance
+ABCD D target still above current price
+DeMark resistance breakthrough
+HL session BUY context
+RSI/MFI above combined MA with rising close
+OsMA negative but improving with bullish candle, or positive slope context
+VWAP bullish breakout with rising slope line
+recent APEX BUY X event
+bullish power candle
+```
 
-Suggested BUY stop and target:
+BUY risk levels:
 
-- Stop: below nearest valid structure level, using the lowest of recent swing/fractal/VWAP invalidation, with ATR or average-range padding.
-- Target 1: next Fibonacci/DeMark/fractal resistance or `1.5R`.
-- Target 2: next extension level or `2.5R`.
+```text
+long_stop = current close - ATR/swing-based stop distance
+long_target = current close + stop distance * reward_to_risk
+```
 
 ## SELL Logic
 
-Return `SELL` when all hard filters pass and the bearish score is high enough.
-
-Hard filters:
-
-- Higher-timeframe Fisher regime is bearish or recently crossed bearish.
-- Price is not directly above strong support/fractal/Fibonacci/DeMark level unless the current candle closes through it.
-- Stop distance to invalidation is not larger than configured maximum risk.
-- Reward-to-risk to the nearest target is at least `1.5R`.
-- No active bullish power candle or bullish VWAP/slope breakout in the last `N` bars.
-
-Core SELL confirmations:
-
-- VWAP candle breakout SELL: close is below VWAP, candle body exceeds the body threshold, and slope direction is falling.
-- Fisher crosses below `Lower_Level` or remains bearish on current timeframe with higher-timeframe support.
-- RSI and/or MFI is below the combined RSI/MFI MA and close is falling.
-- OsMA is weakening from positive or histogram slope is falling.
-- Structure supports the entry: break below IndCandleBreakout low line, DeMark support breakdown, range breakdown, or close below recent fractal low.
-- Trigger quality improves if APEX prints final bearish `X`, shooting star appears near resistance, or a bearish power candle confirms impulse.
-
-SELL score:
+The strategy returns `SELL` only when all implemented filters pass:
 
 ```text
-sell_score =
-  0.25 * regime_bearish_score +
-  0.25 * structure_bearish_score +
-  0.20 * momentum_bearish_score +
-  0.20 * trigger_bearish_score +
-  0.10 * risk_reward_score
+sell_score >= 0.68
+sell_score - buy_score >= 0.18
+reward_to_risk >= 1.5
+no bullish trigger blocker
 ```
 
-Decision:
-
-- `SELL` when `sell_score >= 0.68` and `sell_score - buy_score >= 0.18`.
-- `HOLD` when score is below threshold or bullish/bearish evidence conflicts.
-
-Suggested SELL stop and target:
-
-- Stop: above nearest valid structure level, using the highest of recent swing/fractal/VWAP invalidation, with ATR or average-range padding.
-- Target 1: next Fibonacci/DeMark/fractal support or `1.5R`.
-- Target 2: next extension level or `2.5R`.
-
-## Probability of Success
-
-The Skill should expose `probability_of_success`, but it must be treated as an estimated probability, not a guarantee.
-
-Before enough backtest data exists, use a conservative score-to-probability transform:
+Bearish evidence can come from:
 
 ```text
-edge_score = selected_direction_score - opposite_direction_score
-raw_probability = 0.50 + 0.35 * edge_score
-probability_of_success = clamp(raw_probability, 0.35, 0.82)
+Fisher bearish regime
+close below rolling support
+price above ABCD projected D target
+DeMark support breakthrough
+HL session SELL context
+RSI/MFI below combined MA with falling close
+OsMA positive but weakening with bearish candle, or negative slope context
+VWAP bearish breakdown with falling slope line
+recent APEX SELL X event
+bearish power candle
 ```
 
-Then apply penalties:
+SELL risk levels:
 
 ```text
-probability_of_success -= 0.05 if reward_to_risk < 1.8
-probability_of_success -= 0.05 if signal is against higher-timeframe trend
-probability_of_success -= 0.04 if nearest opposing level is closer than 0.75R
-probability_of_success -= 0.03 if volatility is extreme versus recent average
-probability_of_success -= 0.03 if signal is older than 2 closed candles
+short_stop = current close + ATR/swing-based stop distance
+short_target = current close - stop distance * reward_to_risk
 ```
 
-After backtesting is available, replace the raw transform with calibrated historical buckets:
+## HOLD Logic
+
+The strategy returns `HOLD` when:
 
 ```text
-probability_of_success =
-  historical_win_rate[
-    direction,
-    timeframe,
-    market_regime_bucket,
-    score_bucket,
-    volatility_bucket,
-    reward_risk_bucket
-  ]
+BUY and SELL evidence conflict
+score threshold is not met
+score spread is too small
+reward_to_risk is below 1.5
+an opposing trigger blocker is active
+indicator evidence is stale or neutral
 ```
 
-Minimum calibration rules:
+## Risk Context
 
-- Require at least 30 historical trades in a bucket before using its exact win rate.
-- If a bucket has fewer than 30 trades, blend it with the parent timeframe/regime bucket.
-- Cap displayed probability at `85%` until live-forward validation exists.
-- Always return sample size, backtest period, and whether probability is `heuristic` or `calibrated`.
+Risk is deterministic and backtestable:
 
-Example response fields:
-
-```json
-{
-  "decision": "BUY",
-  "confidence": 0.74,
-  "probability_of_success": 0.67,
-  "probability_model": "heuristic",
-  "probability_sample_size": 0,
-  "score_breakdown": {
-    "regime": 0.82,
-    "structure": 0.70,
-    "momentum": 0.66,
-    "trigger": 0.78,
-    "risk_reward": 0.71
-  }
-}
+```text
+ATR = average of recent true ranges
+long stop = below recent swing/VWAP invalidation with ATR padding
+short stop = above recent swing/VWAP invalidation with ATR padding
+reward_to_risk =
+  conservative: 1.5
+  balanced: 1.6
+  aggressive: 1.8
 ```
 
-## Integration Notes
+The app does not size or execute real orders. It only returns analysis and a non-executing plan through Flask and FastMCP.
 
-- Default mode should be trend-following breakout with reversal support, not pure reversal trading.
-- `VWAP_CANDLE_BREAKOUT_slope_dir_line`, `Fisher_Yur4ik3-a_v6_MTF`, `RSI_MFI_MA3`, `MACD_OSMA_Bar_alert`, `Power_Candle_Alerts_v2`, `ABCD_hand_v4`, `De_Mark_Support_V2`, `APEX_Indi`, and `HL_Signal` are now ported into the first working skill.
-- `ABCD_hand_v4` and `HL_Signal` remain context because they are manual or session-specific in MT4, while `De_Mark_Support_V2` affects structure and `APEX_Indi` affects trigger strength.
-- Backtests must record every feature value at the signal candle so the probability model can be calibrated later.
+## Probability Model
+
+The current probability is heuristic:
+
+```text
+edge = selected_direction_score - opposite_direction_score
+probability = 0.50 + 0.35 * edge
+```
+
+Additional current rule:
+
+```text
+probability -= 0.05 when reward_to_risk < 1.8
+probability is clamped between 0.35 and 0.82
+HOLD returns 0.50
+```
+
+The response reports:
+
+```text
+probability_model: heuristic
+probability_sample_size: 0
+```
+
+Historical calibration is not implemented yet.
+
+## Outputs
+
+The strategy result includes:
+
+```text
+symbol
+timeframe
+decision
+confidence
+probability_of_success
+probability_model
+probability_sample_size
+score_breakdown
+indicator_values
+explanation
+risk_assumptions
+backtestable_rules
+```
+
+`indicator_values.features` contains each normalized feature signal, including:
+
+```text
+regime
+structure
+structure_abcd
+structure_demark
+structure_hl_session
+momentum_rsi_mfi
+momentum_osma
+trigger_vwap
+trigger_apex
+trigger_power_candle
+```
+
+## Interfaces Using This Logic
+
+Flask endpoints:
+
+```text
+GET  /skill/spec
+GET  /strategy/spec
+POST /analyze
+POST /backtest
+```
+
+FastMCP tools:
+
+```text
+get_skill_spec
+get_strategy_spec
+analyze_strategy
+make_trading_decision
+backtest_strategy
+get_mcp_manifest
+```
+
+`make_trading_decision` wraps the same strategy result in a non-executing trade plan. It never places orders or signs transactions.
