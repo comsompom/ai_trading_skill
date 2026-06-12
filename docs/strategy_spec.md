@@ -10,10 +10,14 @@ This Track 2 Skill is a deterministic, backtestable crypto strategy. It does not
 ## Implemented First-Version Logic
 
 - Regime: Fisher Yur4ik-style Fisher transform.
-- Structure: rolling support/resistance breakout proxy.
+- Structure: rolling support/resistance breakout proxy plus `ABCD_hand_v4` projection context.
 - Momentum: RSI/MFI versus combined moving average and MACD OsMA transition.
 - Trigger: VWAP candle breakout with slope-direction confirmation and power-candle impulse.
 - Risk: ATR-padded stops and fixed reward-to-risk profile.
+
+## ABCD Hand Logic
+
+`ABCD_hand_v4.mq4` is included as deterministic structure context. The original MT4 indicator is an interactive chart tool: clicked A, B, and C points snap to a nearby 3-bar high/low extreme, then D is projected as `D = C + PLevel * abs(B - A)`. The Python port infers A, B, and C from recent alternating swing points so the skill can run from normalized candles, and it exposes the projected D target plus the same Fibonacci level set used by the MQL indicator.
 
 ## Decision Rules
 
@@ -24,4 +28,3 @@ This Track 2 Skill is a deterministic, backtestable crypto strategy. It does not
 ## Probability
 
 The first version uses the heuristic transform from `logic_for_skill.md`. Calibration will replace this after enough backtest samples exist.
-

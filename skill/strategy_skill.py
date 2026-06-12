@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from indicators.common import clamp, true_ranges
-from indicators.custom_mql_ported import fisher_transform, macd_osma, rsi_mfi_ma3, vwap_candle_breakout
+from indicators.custom_mql_ported import abcd_hand_projection, fisher_transform, macd_osma, rsi_mfi_ma3, vwap_candle_breakout
 from skill.signal_schema import Candle, FeatureSignal, StrategyResult
 
 BACKTESTABLE_RULES = [
@@ -83,10 +83,12 @@ class StrategySkill:
         rsi_mfi_signal, rsi_mfi_values = rsi_mfi_ma3(candles)
         osma_signal, osma_values = macd_osma(candles)
         structure_signal, structure_values = self._rolling_structure(candles)
+        abcd_signal, abcd_values = abcd_hand_projection(candles)
         power_signal, power_values = self._power_candle(candles)
         features = {
             "regime": fisher_signal,
             "structure": structure_signal,
+            "structure_abcd": abcd_signal,
             "momentum_rsi_mfi": rsi_mfi_signal,
             "momentum_osma": osma_signal,
             "trigger_vwap": vwap_signal,
@@ -98,6 +100,7 @@ class StrategySkill:
             "rsi_mfi_ma3": rsi_mfi_values,
             "macd_osma": osma_values,
             "rolling_structure": structure_values,
+            "abcd_hand_v4": abcd_values,
             "power_candle": power_values,
         }
         return features, values
@@ -169,6 +172,9 @@ class StrategySkill:
     def _score(self, features: dict[str, FeatureSignal], reward_to_risk: float) -> dict[str, float]:
         regime_buy, regime_sell = self._directional_score(features["regime"])
         structure_buy, structure_sell = self._directional_score(features["structure"])
+        abcd_buy, abcd_sell = self._directional_score(features["structure_abcd"])
+        structure_buy = max(structure_buy, (structure_buy + 0.5 * abcd_buy) / 1.5)
+        structure_sell = max(structure_sell, (structure_sell + 0.5 * abcd_sell) / 1.5)
         rsi_buy, rsi_sell = self._directional_score(features["momentum_rsi_mfi"])
         osma_buy, osma_sell = self._directional_score(features["momentum_osma"])
         vwap_buy, vwap_sell = self._directional_score(features["trigger_vwap"])
@@ -242,6 +248,7 @@ def strategy_spec() -> dict:
         "feature_groups": ["regime", "structure", "momentum", "trigger", "risk_context"],
         "rules": BACKTESTABLE_RULES,
         "indicators_implemented": [
+            "ABCD_hand_v4 projection: snap-to-extreme points, D = C + PLevel * abs(B - A), Fibonacci levels",
             "VWAP_CANDLE_BREAKOUT_slope_dir_line",
             "Fisher_Yur4ik3-a_v6_MTF core Fisher transform",
             "RSI_MFI_MA3",
@@ -251,4 +258,3 @@ def strategy_spec() -> dict:
         ],
         "not_live_trading": True,
     }
-
