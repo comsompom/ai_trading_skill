@@ -1,21 +1,26 @@
 from __future__ import annotations
 
+import os
+
 import requests
 
+from app.env import load_env_file
 from data.cache import cache
 from skill.signal_schema import Candle
 
 
 class BinanceProvider:
-    base_url = "https://api.binance.com/api/v3/klines"
+    default_base_url = "https://api.binance.com"
 
     def get_candles(self, symbol: str, timeframe: str, limit: int = 300) -> list[Candle]:
+        load_env_file()
         key = f"binance:{symbol}:{timeframe}:{limit}"
         cached = cache.get(key)
         if cached is not None:
             return cached
+        base_url = os.getenv("BINANCE_BASE_URL", self.default_base_url).rstrip("/")
         response = requests.get(
-            self.base_url,
+            f"{base_url}/api/v3/klines",
             params={"symbol": symbol.upper(), "interval": timeframe, "limit": min(limit, 1000)},
             timeout=15,
         )
@@ -35,4 +40,3 @@ class BinanceProvider:
         ]
         cache.set(key, candles, ttl_seconds=30)
         return candles
-

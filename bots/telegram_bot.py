@@ -4,8 +4,11 @@ import os
 
 import requests
 
+from app.env import load_env_file
+
 
 def send_telegram(message: str) -> dict:
+    load_env_file()
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
@@ -16,4 +19,3 @@ def send_telegram(message: str) -> dict:
         timeout=15,
     )
     return {"sent": response.ok, "status_code": response.status_code}
-
