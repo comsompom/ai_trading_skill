@@ -1,7 +1,16 @@
 from __future__ import annotations
 
 from indicators.common import clamp, true_ranges
-from indicators.custom_mql_ported import abcd_hand_projection, fisher_transform, macd_osma, rsi_mfi_ma3, vwap_candle_breakout
+from indicators.custom_mql_ported import (
+    abcd_hand_projection,
+    apex_indi,
+    demark_support,
+    fisher_transform,
+    hl_signal,
+    macd_osma,
+    rsi_mfi_ma3,
+    vwap_candle_breakout,
+)
 from skill.signal_schema import Candle, FeatureSignal, StrategyResult
 
 BACKTESTABLE_RULES = [
@@ -84,14 +93,20 @@ class StrategySkill:
         osma_signal, osma_values = macd_osma(candles)
         structure_signal, structure_values = self._rolling_structure(candles)
         abcd_signal, abcd_values = abcd_hand_projection(candles)
+        demark_signal, demark_values = demark_support(candles)
+        hl_session_signal, hl_session_values = hl_signal(candles)
+        apex_signal, apex_values = apex_indi(candles)
         power_signal, power_values = self._power_candle(candles)
         features = {
             "regime": fisher_signal,
             "structure": structure_signal,
             "structure_abcd": abcd_signal,
+            "structure_demark": demark_signal,
+            "structure_hl_session": hl_session_signal,
             "momentum_rsi_mfi": rsi_mfi_signal,
             "momentum_osma": osma_signal,
             "trigger_vwap": vwap_signal,
+            "trigger_apex": apex_signal,
             "trigger_power_candle": power_signal,
         }
         values = {
@@ -101,6 +116,9 @@ class StrategySkill:
             "macd_osma": osma_values,
             "rolling_structure": structure_values,
             "abcd_hand_v4": abcd_values,
+            "de_mark_support_v2": demark_values,
+            "hl_signal": hl_session_values,
+            "apex_indi": apex_values,
             "power_candle": power_values,
         }
         return features, values
@@ -173,16 +191,19 @@ class StrategySkill:
         regime_buy, regime_sell = self._directional_score(features["regime"])
         structure_buy, structure_sell = self._directional_score(features["structure"])
         abcd_buy, abcd_sell = self._directional_score(features["structure_abcd"])
-        structure_buy = max(structure_buy, (structure_buy + 0.5 * abcd_buy) / 1.5)
-        structure_sell = max(structure_sell, (structure_sell + 0.5 * abcd_sell) / 1.5)
+        demark_buy, demark_sell = self._directional_score(features["structure_demark"])
+        hl_buy, hl_sell = self._directional_score(features["structure_hl_session"])
+        structure_buy = max(structure_buy, (structure_buy + 0.5 * abcd_buy + 0.8 * demark_buy + 0.4 * hl_buy) / 2.7)
+        structure_sell = max(structure_sell, (structure_sell + 0.5 * abcd_sell + 0.8 * demark_sell + 0.4 * hl_sell) / 2.7)
         rsi_buy, rsi_sell = self._directional_score(features["momentum_rsi_mfi"])
         osma_buy, osma_sell = self._directional_score(features["momentum_osma"])
         vwap_buy, vwap_sell = self._directional_score(features["trigger_vwap"])
+        apex_buy, apex_sell = self._directional_score(features["trigger_apex"])
         power_buy, power_sell = self._directional_score(features["trigger_power_candle"])
         momentum_buy = (rsi_buy + osma_buy) / 2.0
         momentum_sell = (rsi_sell + osma_sell) / 2.0
-        trigger_buy = max(vwap_buy, (vwap_buy + power_buy) / 2.0)
-        trigger_sell = max(vwap_sell, (vwap_sell + power_sell) / 2.0)
+        trigger_buy = max(vwap_buy, apex_buy, (vwap_buy + power_buy + apex_buy) / 3.0)
+        trigger_sell = max(vwap_sell, apex_sell, (vwap_sell + power_sell + apex_sell) / 3.0)
         risk_reward = clamp((reward_to_risk - 1.0) / 1.5, 0.0, 1.0)
         buy_score = (
             0.25 * regime_buy
@@ -249,6 +270,9 @@ def strategy_spec() -> dict:
         "rules": BACKTESTABLE_RULES,
         "indicators_implemented": [
             "ABCD_hand_v4 projection: snap-to-extreme points, D = C + PLevel * abs(B - A), Fibonacci levels",
+            "De_Mark_Support_V2 support/resistance breakthrough and TD target context",
+            "APEX_Indi A-P-E-X pattern trigger",
+            "HL_Signal 09:00-18:00 session high/low reversal context",
             "VWAP_CANDLE_BREAKOUT_slope_dir_line",
             "Fisher_Yur4ik3-a_v6_MTF core Fisher transform",
             "RSI_MFI_MA3",

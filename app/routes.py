@@ -6,6 +6,7 @@ from agent.skill_runner import analyze_payload
 from backtest.engine import run_backtest
 from bots.discord_bot import send_discord
 from bots.telegram_bot import send_telegram
+from skill.spec import skill_spec
 from skill.strategy_skill import strategy_spec
 
 api = Blueprint("api", __name__)
@@ -19,6 +20,11 @@ def health():
 @api.get("/strategy/spec")
 def spec():
     return jsonify(strategy_spec())
+
+
+@api.get("/skill/spec")
+def skill_spec_route():
+    return jsonify(skill_spec())
 
 
 @api.post("/analyze")
@@ -52,4 +58,3 @@ def notify_test():
     if "discord" in channels:
         results["discord"] = send_discord(message)
     return jsonify({"message": message, "results": results})
-

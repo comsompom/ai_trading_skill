@@ -157,10 +157,26 @@ python -m app.flask_app
 Endpoints:
 
 - `GET /health`
+- `GET /skill/spec`
 - `GET /strategy/spec`
 - `POST /analyze`
 - `POST /backtest`
 - `POST /notify/test`
+
+## FastMCP
+
+Install the optional MCP dependency and run the skill server:
+
+```bash
+pip install -e ".[mcp]"
+python -m agent.mcp_server
+```
+
+FastMCP tools:
+
+- `get_skill_spec`
+- `get_strategy_spec`
+- `analyze_strategy`
 
 ## Analyze With Inline Candles
 

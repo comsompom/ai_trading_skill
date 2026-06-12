@@ -37,10 +37,12 @@ def test_strategy_result_has_required_fields():
     assert result["probability_model"] == "heuristic"
     assert "score_breakdown" in result
     assert "backtestable_rules" in result
+    assert "de_mark_support_v2" in result["indicator_values"]
+    assert "apex_indi" in result["indicator_values"]
+    assert "hl_signal" in result["indicator_values"]
 
 
 def test_strategy_spec_is_track_2_non_live():
     spec = strategy_spec()
     assert spec["not_live_trading"] is True
     assert set(spec["decisions"]) == {"BUY", "SELL", "HOLD"}
-

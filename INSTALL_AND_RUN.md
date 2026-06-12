@@ -123,6 +123,12 @@ Check the strategy specification:
 curl http://localhost:5000/strategy/spec
 ```
 
+Check the Skill specification used by FastMCP and agent discovery:
+
+```bash
+curl http://localhost:5000/skill/spec
+```
+
 ## 10. Analyze a Symbol
 
 Use Binance public OHLCV data:
@@ -189,7 +195,27 @@ curl -X POST http://localhost:5000/notify/test \
 
 If variables are not configured, the endpoint returns `sent: false` with the missing configuration reason.
 
-## 13. Stop the API Server
+## 13. Optional FastMCP Server
+
+Install the optional MCP dependency:
+
+```bash
+pip install -e ".[mcp]"
+```
+
+Run the FastMCP server:
+
+```bash
+python -m agent.mcp_server
+```
+
+It exposes:
+
+- `get_skill_spec`
+- `get_strategy_spec`
+- `analyze_strategy`
+
+## 14. Stop the API Server
 
 In the terminal running the server, press:
 
@@ -197,7 +223,7 @@ In the terminal running the server, press:
 Ctrl+C
 ```
 
-## 14. Run Again Later
+## 15. Run Again Later
 
 Each time you return to the project:
 

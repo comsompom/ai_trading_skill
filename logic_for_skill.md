@@ -199,6 +199,6 @@ Example response fields:
 ## Integration Notes
 
 - Default mode should be trend-following breakout with reversal support, not pure reversal trading.
-- `VWAP_CANDLE_BREAKOUT_slope_dir_line`, `Fisher_Yur4ik3-a_v6_MTF`, `RSI_MFI_MA3`, `FX5_MACD_Divergence_V1_1_2`, `MTF_Fractal_v2`, and `Power_Candle_Alerts_v2` should be ported first.
-- `ABCD_hand_v4`, `Binary_Options`, and `HL_Signal` are useful, but should be optional context because they are manual or session-specific.
+- `VWAP_CANDLE_BREAKOUT_slope_dir_line`, `Fisher_Yur4ik3-a_v6_MTF`, `RSI_MFI_MA3`, `MACD_OSMA_Bar_alert`, `Power_Candle_Alerts_v2`, `ABCD_hand_v4`, `De_Mark_Support_V2`, `APEX_Indi`, and `HL_Signal` are now ported into the first working skill.
+- `ABCD_hand_v4` and `HL_Signal` remain context because they are manual or session-specific in MT4, while `De_Mark_Support_V2` affects structure and `APEX_Indi` affects trigger strength.
 - Backtests must record every feature value at the signal candle so the probability model can be calibrated later.
