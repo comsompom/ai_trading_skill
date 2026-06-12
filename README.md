@@ -2,6 +2,11 @@
 
 Track 2 CMC-style Strategy Skill for a deterministic, backtestable crypto strategy. This is not a live trading agent and does not sign transactions.
 
+## Documentation
+
+- [Project structure and workflow](docs/project_structure.md)
+- [Strategy specification](docs/strategy_spec.md)
+
 ## Setup
 
 ```bash
@@ -169,7 +174,7 @@ Install the optional MCP dependency and run the skill server:
 
 ```bash
 pip install -e ".[mcp]"
-python -m agent.mcp_server
+python3 -m agent.mcp_server
 ```
 
 FastMCP tools:
@@ -177,6 +182,19 @@ FastMCP tools:
 - `get_skill_spec`
 - `get_strategy_spec`
 - `analyze_strategy`
+- `make_trading_decision`
+- `backtest_strategy`
+- `get_mcp_manifest`
+
+FastMCP resources:
+
+- `skill://spec`
+- `strategy://spec`
+- `mcp://manifest`
+
+FastMCP prompt:
+
+- `trading_decision_request`
 
 ## Analyze With Inline Candles
 

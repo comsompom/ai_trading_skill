@@ -22,8 +22,17 @@ def skill_spec() -> dict:
             },
             "fast_mcp": {
                 "module": "agent.mcp_server",
-                "run_command": "python -m agent.mcp_server",
-                "tools": ["get_skill_spec", "get_strategy_spec", "analyze_strategy"],
+                "run_command": "python3 -m agent.mcp_server",
+                "tools": [
+                    "get_skill_spec",
+                    "get_strategy_spec",
+                    "analyze_strategy",
+                    "make_trading_decision",
+                    "backtest_strategy",
+                    "get_mcp_manifest",
+                ],
+                "resources": ["skill://spec", "strategy://spec", "mcp://manifest"],
+                "prompts": ["trading_decision_request"],
             },
         },
         "input_schema": {
@@ -101,6 +110,7 @@ def skill_spec() -> dict:
             "De_Mark_Support_V2 support/resistance TD breakout context",
             "APEX_Indi A-P-E-X pattern trigger",
             "HL_Signal session high/low context",
+            "FastMCP trading decision tool with non-executing trade plan",
         ],
         "strategy": strategy,
     }

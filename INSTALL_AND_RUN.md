@@ -206,7 +206,7 @@ pip install -e ".[mcp]"
 Run the FastMCP server:
 
 ```bash
-python -m agent.mcp_server
+python3 -m agent.mcp_server
 ```
 
 It exposes:
@@ -214,6 +214,19 @@ It exposes:
 - `get_skill_spec`
 - `get_strategy_spec`
 - `analyze_strategy`
+- `make_trading_decision`
+- `backtest_strategy`
+- `get_mcp_manifest`
+
+Resources:
+
+- `skill://spec`
+- `strategy://spec`
+- `mcp://manifest`
+
+Prompt:
+
+- `trading_decision_request`
 
 ## 14. Stop the API Server
 
