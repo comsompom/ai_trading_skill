@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Trading Skill</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #627083;
+      --line: #d9e0e8;
+      --soft: #eef2f6;
+      --blue: #2358d8;
+      --blue-soft: #e8efff;
+      --green: #11845b;
+      --green-soft: #e2f6ed;
+      --red: #bd3030;
+      --red-soft: #f9e4e4;
+      --amber: #95620a;
+      --amber-soft: #fff1ce;
+      --shadow: 0 8px 24px rgba(23, 32, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 220px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      background: #17202a;
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.1;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 9px;
+      background: var(--soft);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .badge.safe {
+      background: var(--green-soft);
+      border-color: #bfe5d4;
+      color: var(--green);
+    }
+
+    main {
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .controls {
+      align-self: start;
+      position: sticky;
+      top: 82px;
+      padding: 16px;
+    }
+
+    .panel-title {
+      margin: 0 0 4px;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .panel-note {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .field {
+      margin-bottom: 13px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 650;
+      font-size: 12px;
+      color: #364453;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 8px 10px;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: var(--soft);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      margin-bottom: 14px;
+    }
+
+    .segmented button {
+      border: 0;
+      border-radius: 6px;
+      min-height: 34px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .segmented button.active {
+      background: #fff;
+      color: var(--blue);
+      box-shadow: 0 1px 4px rgba(23, 32, 42, 0.12);
+      font-weight: 700;
+    }
+
+    .actions {
+      display: grid;
+      gap: 9px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      min-height: 40px;
+      padding: 9px 12px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .btn.primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .btn:disabled {
+      opacity: 0.58;
+      cursor: wait;
+    }
+
+    .status-line {
+      margin-top: 14px;
+      padding: 10px;
+      border-radius: 7px;
+      background: var(--soft);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      min-height: 52px;
+    }
+
+    .workspace {
+      display: grid;
+      gap: 18px;
+    }
+
+    .chart-panel {
+      min-height: 420px;
+      display: grid;
+      grid-template-rows: auto minmax(280px, 1fr);
+    }
+
+    .chart-header {
+      padding: 16px 16px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .chart-title h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .chart-title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .market-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(86px, 1fr));
+      gap: 8px;
+      min-width: 280px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 8px;
+      background: #fff;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .stat strong {
+      font-size: 14px;
+    }
+
+    .chart-wrap {
+      padding: 0 16px 16px;
+      min-height: 300px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: minmax(240px, 0.9fr) minmax(300px, 1.1fr) minmax(260px, 1fr);
+      gap: 18px;
+    }
+
+    .result-panel {
+      padding: 16px;
+      min-height: 230px;
+    }
+
+    .decision {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 96px;
+      height: 40px;
+      border-radius: 7px;
+      font-weight: 800;
+      margin: 8px 0 12px;
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .decision.buy {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .decision.sell {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 9px 0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    .metric-row span {
+      color: var(--muted);
+    }
+
+    .score-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .score {
+      display: grid;
+      grid-template-columns: 92px 1fr 48px;
+      gap: 9px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 999px;
+      background: var(--soft);
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+
+    .risk-table {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .risk-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+      font-size: 13px;
+    }
+
+    .risk-item span {
+      color: var(--muted);
+    }
+
+    .explanation {
+      color: #344255;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 10px 0 0;
+    }
+
+    .events-panel {
+      padding: 16px;
+    }
+
+    .event-log {
+      margin-top: 12px;
+      max-height: 210px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfd;
+    }
+
+    .event-log div {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      color: #344255;
+      font-size: 12px;
+    }
+
+    .event-log div:last-child {
+      border-bottom: 0;
+    }
+
+    @media (max-width: 1080px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar-inner,
+      main {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .topbar-inner,
+      .chart-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .badges {
+        justify-content: flex-start;
+      }
+
+      .market-stats {
+        min-width: 0;
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-mark">AI</div>
+          <div>
+            <h1>AI Trading Skill</h1>
+            <span>Deterministic crypto strategy dashboard</span>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge safe">No live trading</span>
+          <span class="badge">CMC primary</span>
+          <span class="badge">CoinGecko no-key fallback</span>
+          <span class="badge">Backtestable rules</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <aside class="panel controls">
+        <h2 class="panel-title">Market Setup</h2>
+        <p class="panel-note">Analyze generated candles offline or fetch provider-backed candles, then inspect the strategy decision and risk context.</p>
+
+        <div class="segmented" role="group" aria-label="Market data mode">
+          <button type="button" id="demoMode" class="active">Demo</button>
+          <button type="button" id="liveMode">Live</button>
+        </div>
+
+        <div class="field">
+          <label for="symbol">Symbol</label>
+          <input id="symbol" value="BTCUSDT" autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label for="timeframe">Timeframe</label>
+          <select id="timeframe">
+            <option value="15m">15m</option>
+            <option value="1h" selected>1h</option>
+            <option value="4h">4h</option>
+            <option value="1d">1d</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="lookback">Candles</label>
+          <input id="lookback" type="number" min="80" max="500" value="140">
+        </div>
+
+        <div class="field">
+          <label for="riskProfile">Risk Profile</label>
+          <select id="riskProfile">
+            <option value="conservative">Conservative</option>
+            <option value="balanced" selected>Balanced</option>
+            <option value="aggressive">Aggressive</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="provider">Provider</label>
+          <select id="provider">
+            <option value="cmc" selected>CMC with fallback</option>
+            <option value="coingecko">CoinGecko</option>
+            <option value="binance">Binance explicit</option>
+          </select>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="generateBtn" type="button">Generate Demo Candles</button>
+          <button class="btn" id="loadBtn" type="button">Load Market Data</button>
+          <button class="btn primary" id="analyzeBtn" type="button">Run Skill Analysis</button>
+          <button class="btn" id="backtestBtn" type="button">Run Backtest</button>
+        </div>
+
+        <div class="status-line" id="statusLine">Ready. Demo candles are loaded locally.</div>
+      </aside>
+
+      <section class="workspace">
+        <section class="panel chart-panel">
+          <div class="chart-header">
+            <div class="chart-title">
+              <h2 id="chartTitle">BTCUSDT / 1h</h2>
+              <p id="chartSubtitle">Generated local OHLCV candles</p>
+            </div>
+            <div class="market-stats">
+              <div class="stat"><span>Last Close</span><strong id="lastClose">-</strong></div>
+              <div class="stat"><span>Range</span><strong id="rangeStat">-</strong></div>
+              <div class="stat"><span>Candles</span><strong id="candleCount">-</strong></div>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="priceChart" width="980" height="360" aria-label="Candlestick price chart"></canvas>
+          </div>
+        </section>
+
+        <section class="results-grid">
+          <div class="panel result-panel">
+            <h2 class="panel-title">Decision</h2>
+            <div id="decisionBadge" class="decision">WAITING</div>
+            <div class="metric-row"><span>Confidence</span><strong id="confidenceMetric">-</strong></div>
+            <div class="metric-row"><span>Probability</span><strong id="probabilityMetric">-</strong></div>
+            <div class="metric-row"><span>Model</span><strong id="modelMetric">-</strong></div>
+          </div>
+
+          <div class="panel result-panel">
+            <h2 class="panel-title">Score Breakdown</h2>
+            <div class="score-list" id="scoreList"></div>
+            <p class="explanation" id="explanation">Run the skill to see the indicator reasoning and blockers.</p>
+          </div>
+
+          <div class="panel result-panel">
+            <h2 class="panel-title">Risk Context</h2>
+            <div class="risk-table" id="riskTable"></div>
+          </div>
+        </section>
+
+        <section class="panel events-panel">
+          <h2 class="panel-title">Backtest and Activity</h2>
+          <p class="panel-note" id="backtestSummary">Run a backtest to see simulated signal history and trade count. Results are deterministic and non-executing.</p>
+          <div class="event-log" id="eventLog"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const state = {
+      mode: "demo",
+      candles: [],
+      lastResult: null,
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const chart = $("priceChart");
+    const ctx = chart.getContext("2d");
+
+    function timeframeSeconds(value) {
+      const amount = parseInt(value.slice(0, -1) || "1", 10);
+      const unit = value.slice(-1);
+      if (unit === "m") return amount * 60;
+      if (unit === "h") return amount * 3600;
+      if (unit === "d") return amount * 86400;
+      return 3600;
+    }
+
+    function setStatus(message) {
+      $("statusLine").textContent = message;
+      addEvent(message);
+    }
+
+    function addEvent(message) {
+      const row = document.createElement("div");
+      row.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+      $("eventLog").prepend(row);
+    }
+
+    function setBusy(busy) {
+      ["generateBtn", "loadBtn", "analyzeBtn", "backtestBtn"].forEach((id) => {
+        $(id).disabled = busy;
+      });
+    }
+
+    function payloadBase(includeCandles = true) {
+      return {
+        symbol: $("symbol").value.trim().toUpperCase() || "BTCUSDT",
+        timeframe: $("timeframe").value,
+        lookback: Math.max(80, Math.min(500, Number($("lookback").value || 140))),
+        provider: $("provider").value,
+        risk_profile: $("riskProfile").value,
+        market_data: includeCandles ? state.candles : [],
+      };
+    }
+
+    function generateDemoCandles() {
+      const lookback = Math.max(80, Math.min(500, Number($("lookback").value || 140)));
+      const tf = $("timeframe").value;
+      const step = timeframeSeconds(tf);
+      const now = Math.floor(Date.now() / 1000 / step) * step;
+      const candles = [];
+      let price = 100;
+      for (let i = 0; i < lookback; i += 1) {
+        const wave = Math.sin(i / 8) * 0.9 + Math.cos(i / 17) * 0.7;
+        const drift = i > lookback * 0.62 ? -0.05 : 0.08;
+        const impulse = i % 37 === 0 ? 1.4 : 0;
+        const open = price;
+        const close = Math.max(2, open + drift + wave * 0.12 + impulse * 0.18);
+        const high = Math.max(open, close) + 0.8 + Math.abs(wave) * 0.3;
+        const low = Math.min(open, close) - 0.7 - Math.abs(wave) * 0.2;
+        price = close;
+        candles.push({
+          symbol: $("symbol").value.trim().toUpperCase() || "BTCUSDT",
+          timeframe: tf,
+          timestamp: now - (lookback - 1 - i) * step,
+          open: round(open),
+          high: round(high),
+          low: round(low),
+          close: round(close),
+          volume: Math.round(1400 + i * 3 + Math.abs(wave) * 420),
+        });
+      }
+      state.candles = candles;
+      $("chartSubtitle").textContent = "Generated local OHLCV candles";
+      updateChart();
+      setStatus(`Generated ${candles.length} demo candles.`);
+    }
+
+    function round(value) {
+      return Number(value.toFixed(6));
+    }
+
+    function formatPrice(value) {
+      if (value === null || value === undefined || Number.isNaN(value)) return "-";
+      return Number(value).toLocaleString(undefined, { maximumFractionDigits: 6 });
+    }
+
+    function drawGrid(width, height, pad) {
+      ctx.strokeStyle = "#e8edf3";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i += 1) {
+        const y = pad.top + ((height - pad.top - pad.bottom) * i) / 4;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(width - pad.right, y);
+        ctx.stroke();
+      }
+    }
+
+    function updateChart() {
+      const candles = state.candles;
+      const width = chart.width;
+      const height = chart.height;
+      const pad = { top: 24, right: 54, bottom: 34, left: 44 };
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      drawGrid(width, height, pad);
+
+      $("chartTitle").textContent = `${payloadBase(false).symbol} / ${$("timeframe").value}`;
+      $("candleCount").textContent = candles.length || "-";
+
+      if (!candles.length) {
+        ctx.fillStyle = "#627083";
+        ctx.font = "14px system-ui";
+        ctx.fillText("No candles loaded", pad.left, height / 2);
+        $("lastClose").textContent = "-";
+        $("rangeStat").textContent = "-";
+        return;
+      }
+
+      const highs = candles.map((c) => c.high);
+      const lows = candles.map((c) => c.low);
+      const max = Math.max(...highs);
+      const min = Math.min(...lows);
+      const range = Math.max(max - min, 0.0001);
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+      const candleW = Math.max(3, Math.min(12, plotW / candles.length * 0.62));
+      const xStep = plotW / Math.max(1, candles.length - 1);
+      const y = (price) => pad.top + (max - price) / range * plotH;
+
+      candles.forEach((c, i) => {
+        const x = pad.left + i * xStep;
+        const up = c.close >= c.open;
+        ctx.strokeStyle = up ? "#11845b" : "#bd3030";
+        ctx.fillStyle = up ? "#11845b" : "#bd3030";
+        ctx.beginPath();
+        ctx.moveTo(x, y(c.high));
+        ctx.lineTo(x, y(c.low));
+        ctx.stroke();
+        const bodyTop = y(Math.max(c.open, c.close));
+        const bodyH = Math.max(2, Math.abs(y(c.open) - y(c.close)));
+        ctx.fillRect(x - candleW / 2, bodyTop, candleW, bodyH);
+      });
+
+      ctx.fillStyle = "#627083";
+      ctx.font = "11px system-ui";
+      ctx.fillText(formatPrice(max), width - pad.right + 8, pad.top + 4);
+      ctx.fillText(formatPrice(min), width - pad.right + 8, height - pad.bottom);
+
+      const last = candles[candles.length - 1];
+      $("lastClose").textContent = formatPrice(last.close);
+      $("rangeStat").textContent = `${formatPrice(min)} - ${formatPrice(max)}`;
+    }
+
+    async function postJson(url, payload) {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        throw new Error(body.error || `Request failed with ${response.status}`);
+      }
+      return body;
+    }
+
+    async function loadMarketData() {
+      setBusy(true);
+      try {
+        const payload = payloadBase(false);
+        const data = await postJson("/market-data", payload);
+        state.candles = data.candles;
+        $("chartSubtitle").textContent = `Loaded from ${data.provider}`;
+        updateChart();
+        setStatus(`Loaded ${data.candles.length} candles from ${data.provider}.`);
+      } catch (error) {
+        setStatus(`Market data failed: ${error.message}`);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function runAnalyze() {
+      if (!state.candles.length) generateDemoCandles();
+      setBusy(true);
+      try {
+        const result = await postJson("/analyze", payloadBase(true));
+        state.lastResult = result;
+        renderAnalysis(result);
+        setStatus(`Analysis complete: ${result.decision} at ${Math.round(result.confidence * 100)}% confidence.`);
+      } catch (error) {
+        setStatus(`Analysis failed: ${error.message}`);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function runBacktest() {
+      if (!state.candles.length) generateDemoCandles();
+      setBusy(true);
+      try {
+        const result = await postJson("/backtest", payloadBase(true));
+        $("backtestSummary").textContent =
+          `${result.input_data_range.candles} candles, ${result.signal_history.length} signals, ` +
+          `${result.number_of_trades} simulated trades, total return ${formatPercent(result.total_return)}.`;
+        setStatus(`Backtest complete with ${result.signal_history.length} signal evaluations.`);
+      } catch (error) {
+        setStatus(`Backtest failed: ${error.message}`);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function renderAnalysis(result) {
+      const badge = $("decisionBadge");
+      badge.textContent = result.decision;
+      badge.className = `decision ${result.decision.toLowerCase()}`;
+      $("confidenceMetric").textContent = formatPercent(result.confidence);
+      $("probabilityMetric").textContent = formatPercent(result.probability_of_success);
+      $("modelMetric").textContent = result.probability_model || "-";
+      $("explanation").textContent = result.explanation || "No explanation returned.";
+      renderScores(result.score_breakdown || {});
+      renderRisk(result.risk_assumptions || {});
+    }
+
+    function formatPercent(value) {
+      if (value === null || value === undefined || Number.isNaN(value)) return "-";
+      return `${(Number(value) * 100).toFixed(1)}%`;
+    }
+
+    function renderScores(scores) {
+      const order = ["buy_score", "sell_score", "regime", "structure", "momentum", "trigger", "risk_reward"];
+      $("scoreList").innerHTML = "";
+      order.forEach((key) => {
+        if (!(key in scores)) return;
+        const row = document.createElement("div");
+        row.className = "score";
+        row.innerHTML = `
+          <span>${key.replaceAll("_", " ")}</span>
+          <div class="bar"><i style="width:${Math.max(0, Math.min(100, scores[key] * 100))}%"></i></div>
+          <strong>${formatPercent(scores[key])}</strong>
+        `;
+        $("scoreList").appendChild(row);
+      });
+    }
+
+    function renderRisk(risk) {
+      const items = [
+        ["Long Stop", risk.long_stop],
+        ["Long Target", risk.long_target],
+        ["Short Stop", risk.short_stop],
+        ["Short Target", risk.short_target],
+        ["ATR", risk.atr],
+        ["Reward/Risk", risk.reward_to_risk],
+        ["Max Position", risk.max_position_size],
+      ];
+      $("riskTable").innerHTML = "";
+      items.forEach(([label, value]) => {
+        const row = document.createElement("div");
+        row.className = "risk-item";
+        row.innerHTML = `<span>${label}</span><strong>${value === undefined ? "-" : value}</strong>`;
+        $("riskTable").appendChild(row);
+      });
+    }
+
+    $("demoMode").addEventListener("click", () => {
+      state.mode = "demo";
+      $("demoMode").classList.add("active");
+      $("liveMode").classList.remove("active");
+      $("loadBtn").textContent = "Load Demo Candles";
+      generateDemoCandles();
+    });
+
+    $("liveMode").addEventListener("click", () => {
+      state.mode = "live";
+      $("liveMode").classList.add("active");
+      $("demoMode").classList.remove("active");
+      $("loadBtn").textContent = "Load Live Candles";
+      setStatus("Live mode selected. Load market data to fetch provider-backed candles.");
+    });
+
+    $("generateBtn").addEventListener("click", generateDemoCandles);
+    $("loadBtn").addEventListener("click", () => state.mode === "live" ? loadMarketData() : generateDemoCandles());
+    $("analyzeBtn").addEventListener("click", runAnalyze);
+    $("backtestBtn").addEventListener("click", runBacktest);
+    ["symbol", "timeframe", "lookback"].forEach((id) => $(id).addEventListener("change", generateDemoCandles));
+
+    generateDemoCandles();
+    renderScores({});
+    renderRisk({});
+  </script>
+</body>
+</html>

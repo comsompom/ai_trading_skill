@@ -1,15 +1,27 @@
 from __future__ import annotations
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, render_template, request
 
 from agent.skill_runner import analyze_payload
 from backtest.engine import run_backtest
 from bots.discord_bot import send_discord
 from bots.telegram_bot import send_telegram
+from data.providers import get_provider
+from skill.signal_schema import AnalyzeRequest
 from skill.spec import skill_spec
 from skill.strategy_skill import strategy_spec
 
 api = Blueprint("api", __name__)
+
+
+@api.get("/")
+def index():
+    return render_template("index.html")
+
+
+@api.get("/favicon.ico")
+def favicon():
+    return ("", 204)
 
 
 @api.get("/health")
@@ -35,6 +47,31 @@ def analyze():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     return jsonify(result)
+
+
+@api.post("/market-data")
+def market_data():
+    payload = request.get_json(silent=True) or {}
+    try:
+        analyze_request = AnalyzeRequest.from_payload(payload)
+        candles = analyze_request.market_data
+        if not candles:
+            provider = get_provider(analyze_request.provider)
+            candles = provider.get_candles(
+                symbol=analyze_request.symbol,
+                timeframe=analyze_request.timeframe,
+                limit=analyze_request.lookback,
+            )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(
+        {
+            "symbol": analyze_request.symbol,
+            "timeframe": analyze_request.timeframe,
+            "provider": analyze_request.provider,
+            "candles": [candle.to_dict() for candle in candles],
+        }
+    )
 
 
 @api.post("/backtest")

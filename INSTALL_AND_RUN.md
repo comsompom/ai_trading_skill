@@ -95,7 +95,20 @@ Keep this terminal open.
 
 ## 7. Check the API
 
-Open a second terminal, activate the venv, and call health:
+Open the dashboard in your browser:
+
+```text
+http://localhost:5050/
+```
+
+You should see:
+
+- Market setup controls for symbol, timeframe, candle count, provider, and risk profile.
+- A candlestick chart with generated demo candles.
+- Buttons for `Generate Demo Candles`, `Load Market Data`, `Run Skill Analysis`, and `Run Backtest`.
+- Decision, score breakdown, risk context, and activity panels.
+
+Then open a second terminal, activate the venv, and call health:
 
 ```bash
 cd /Users/olegbourdo/Development/ai_trading_skill
@@ -120,6 +133,8 @@ curl http://localhost:5050/skill/spec
 ```
 
 These should return JSON documents describing the strategy, indicators, interfaces, and input/output schema.
+
+You can use either the browser dashboard or the terminal smoke tests below. The dashboard is the best way to show the project working visually.
 
 ## 8. Prove Analyze Works Without Any API Key
 
@@ -327,9 +342,10 @@ PORT=5050 python -m app.flask_app
 In a second terminal:
 
 ```bash
+open http://localhost:5050/
 curl http://localhost:5050/health
 curl http://localhost:5050/strategy/spec
 curl http://localhost:5050/skill/spec
 ```
 
-Then run the offline `/analyze` smoke test from section 8 and the offline `/backtest` smoke test from section 9.
+In the browser, click `Run Skill Analysis`, then `Run Backtest`. For terminal-only proof, run the offline `/analyze` smoke test from section 8 and the offline `/backtest` smoke test from section 9.
