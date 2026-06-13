@@ -88,7 +88,7 @@ Default provider behavior:
 market_data supplied -> use supplied normalized candles
 market_data empty and provider omitted -> use provider=cmc
 provider=cmc with CMC_API_KEY -> fetch CoinMarketCap historical OHLCV
-provider=cmc without CMC_API_KEY -> fall back to Binance when CMC_FALLBACK_PROVIDER=binance
+provider=cmc without CMC_API_KEY -> fall back to CoinGecko when CMC_FALLBACK_PROVIDER=coingecko
 provider=binance -> fetch Binance public OHLCV directly
 ```
 

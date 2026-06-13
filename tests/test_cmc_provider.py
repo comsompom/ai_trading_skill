@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from data.providers import get_provider
+from data.providers.coingecko import CoinGeckoProvider
 from data.providers.cmc_agent_hub import CoinMarketCapAgentHubProvider
 
 
@@ -52,14 +53,73 @@ def test_cmc_provider_parses_ohlcv_response(monkeypatch):
     assert candles[0].volume == 12345.0
 
 
-def test_cmc_provider_without_key_falls_back_to_binance(monkeypatch):
+def test_cmc_provider_without_key_falls_back_to_coingecko(monkeypatch):
+    class FakeCoinGeckoProvider:
+        def get_candles(self, symbol: str, timeframe: str, limit: int):
+            return [(symbol, timeframe, limit)]
+
+    monkeypatch.setenv("CMC_API_KEY", "")
+    monkeypatch.delenv("CMC_FALLBACK_PROVIDER", raising=False)
+    monkeypatch.setattr("data.providers.cmc_agent_hub.CoinGeckoProvider", FakeCoinGeckoProvider)
+
+    assert CoinMarketCapAgentHubProvider().get_candles("BTCUSDT", "1h", 80) == [("BTCUSDT", "1h", 80)]
+
+
+def test_cmc_provider_can_still_explicitly_fallback_to_binance(monkeypatch):
     class FakeBinanceProvider:
         def get_candles(self, symbol: str, timeframe: str, limit: int):
             return [(symbol, timeframe, limit)]
 
-    monkeypatch.delenv("CMC_API_KEY", raising=False)
+    monkeypatch.setenv("CMC_API_KEY", "")
     monkeypatch.setenv("CMC_FALLBACK_PROVIDER", "binance")
     monkeypatch.setattr("data.providers.cmc_agent_hub.BinanceProvider", FakeBinanceProvider)
 
-    assert CoinMarketCapAgentHubProvider().get_candles("BTCUSDT", "1h", 80) == [("BTCUSDT", "1h", 80)]
+    assert CoinMarketCapAgentHubProvider().get_candles("ETHUSDT", "4h", 90) == [("ETHUSDT", "4h", 90)]
 
+
+def test_coingecko_provider_aggregates_market_chart_prices(monkeypatch):
+    class FakeResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "prices": [
+                    [1_700_000_000_000, 100.0],
+                    [1_700_000_900_000, 105.0],
+                    [1_700_001_800_000, 98.0],
+                    [1_700_003_600_000, 102.0],
+                    [1_700_004_500_000, 107.0],
+                ],
+                "total_volumes": [
+                    [1_700_000_000_000, 1000.0],
+                    [1_700_003_600_000, 2000.0],
+                ],
+            }
+
+    captured = {}
+
+    def fake_get(url, headers, params, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["params"] = params
+        captured["timeout"] = timeout
+        return FakeResponse()
+
+    monkeypatch.delenv("COINGECKO_API_KEY", raising=False)
+    monkeypatch.setattr("data.providers.coingecko.requests.get", fake_get)
+
+    candles = CoinGeckoProvider().get_candles("BTCUSDT", "1h", 2)
+
+    assert captured["url"].endswith("/coins/bitcoin/market_chart/range")
+    assert captured["headers"] == {}
+    assert captured["params"]["vs_currency"] == "usd"
+    assert captured["params"]["interval"] == "hourly"
+    assert len(candles) == 2
+    assert candles[0].open == 100.0
+    assert candles[0].high == 105.0
+    assert candles[0].low == 98.0
+    assert candles[0].close == 98.0
+    assert candles[0].volume == 1000.0
+    assert candles[1].open == 102.0
+    assert candles[1].close == 107.0

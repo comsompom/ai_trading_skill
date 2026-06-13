@@ -131,19 +131,19 @@ curl http://localhost:5000/skill/spec
 
 ## 10. Analyze a Symbol
 
-Use Binance public OHLCV data:
+Use the default CMC path with CoinGecko as the no-key fallback:
 
 ```bash
 curl -X POST http://localhost:5000/analyze \
   -H "Content-Type: application/json" \
-  -d '{"symbol":"BTCUSDT","timeframe":"1h","lookback":300,"provider":"binance","risk_profile":"balanced","market_data":[]}'
+  -d '{"symbol":"BTCUSDT","timeframe":"1h","lookback":300,"provider":"cmc","risk_profile":"balanced","market_data":[]}'
 ```
 
 Notes:
 
 - `lookback` must be at least `60`.
-- If `market_data` is empty, the app fetches public candle data from Binance.
-- Binance access requires an internet connection and may depend on regional availability.
+- If `market_data` is empty, the app fetches provider-backed candle data.
+- Without `CMC_API_KEY`, set `CMC_FALLBACK_PROVIDER=coingecko` to avoid Binance.
 
 ## 11. Run a Backtest
 
@@ -152,7 +152,7 @@ Run:
 ```bash
 curl -X POST http://localhost:5000/backtest \
   -H "Content-Type: application/json" \
-  -d '{"symbol":"BTCUSDT","timeframe":"1h","lookback":300,"provider":"binance","risk_profile":"balanced","market_data":[]}'
+  -d '{"symbol":"BTCUSDT","timeframe":"1h","lookback":300,"provider":"cmc","risk_profile":"balanced","market_data":[]}'
 ```
 
 Notes:

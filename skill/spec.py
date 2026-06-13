@@ -119,7 +119,7 @@ def skill_spec() -> dict:
             "strategy specification for agent discovery",
             "normalized candle analysis",
             "provider-backed analysis when market_data is omitted",
-            "CoinMarketCap-powered market data path with Binance fallback for local no-key development",
+            "CoinMarketCap-powered market data path with CoinGecko fallback for local no-key development",
             "backtestable rules and risk assumptions",
             "ABCD_hand_v4 projection context with D target and Fibonacci levels",
             "De_Mark_Support_V2 support/resistance TD breakout context",

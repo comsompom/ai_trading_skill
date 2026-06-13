@@ -25,20 +25,29 @@ Create a local `.env` file from the tracked example:
 cp .env.example .env
 ```
 
-Fill only the values you need. Public Binance candle data works without an API key. Private exchange data, account data, trading, paid market data, explorer lookups, and notifications require the provider-specific keys below.
+Fill only the values you need. The local no-key fallback uses CoinGecko. Private exchange data, account data, trading, paid market data, explorer lookups, and notifications require the provider-specific keys below.
 
 Never commit `.env`. It can contain exchange credentials, webhook URLs, and bot tokens.
 
 ### CoinMarketCap / CMC Agent Hub
 
-Variables:
+`provider=cmc` is the default market-data path for the Strategy Skill. Set `CMC_API_KEY` to use CoinMarketCap historical OHLCV data. Without a CMC key, local development falls back to CoinGecko when `CMC_FALLBACK_PROVIDER=coingecko`.
 
-- `CMC_API_KEY`
-- `CMC_BASE_URL`
-- `CMC_CONVERT`
-- `CMC_FALLBACK_PROVIDER`
+How to fill the CMC variables:
 
-`provider=cmc` is the default market-data path for the Strategy Skill. Set `CMC_API_KEY` to use CoinMarketCap historical OHLCV data. Without a CMC key, local development falls back to Binance public candles when `CMC_FALLBACK_PROVIDER=binance`.
+1. Create or sign in to a CoinMarketCap API account at https://pro.coinmarketcap.com/signup/.
+2. Open the CoinMarketCap API dashboard and copy your API key.
+3. Paste the key into your local `.env` file as `CMC_API_KEY`.
+4. Keep `CMC_BASE_URL=https://pro-api.coinmarketcap.com` unless CoinMarketCap tells you to use a different endpoint.
+5. Keep `CMC_CONVERT=USD` unless you want OHLCV prices normalized to another supported quote currency.
+6. Keep `CMC_FALLBACK_PROVIDER=coingecko` for no-key local development. Set it to `none` or `disabled` if you want `provider=cmc` to fail when `CMC_API_KEY` is missing.
+
+```env
+CMC_API_KEY=your_coinmarketcap_api_key_here
+CMC_BASE_URL=https://pro-api.coinmarketcap.com
+CMC_CONVERT=USD
+CMC_FALLBACK_PROVIDER=coingecko
+```
 
 Use this provider as the core CMC-powered data path for Track 2. The strategy itself remains our own deterministic indicator and scoring logic.
 
@@ -47,30 +56,19 @@ Use this provider as the core CMC-powered data path for Track 2. The strategy it
 Variables:
 
 - `BINANCE_BASE_URL`
-- `BINANCE_API_KEY`
-- `BINANCE_API_SECRET`
 
-Use `BINANCE_BASE_URL=https://api.binance.com` for Binance Spot mainnet public data.
+Use `BINANCE_BASE_URL=https://api.binance.com` only if you explicitly request `provider=binance`. Binance is no longer used as the default no-key fallback.
 
-To get Binance API credentials:
-
-1. Sign in to Binance.
-2. Open API Management from your Binance account.
-3. Create a new API key.
-4. Store the API key in `BINANCE_API_KEY`.
-5. Store the secret key in `BINANCE_API_SECRET`.
-6. Keep permissions minimal. Public market data does not need a key. Account data needs user-data permission, and trading must be enabled separately only if live trading is intentionally implemented.
-7. Use IP restrictions where possible.
-
-Binance API docs: https://developers.binance.com/docs/binance-spot-api-docs/rest-api/request-security
+No Binance API key is needed by this project because it does not call signed/private Binance endpoints or execute live trades.
 
 ### CoinGecko
 
 Variable:
 
+- `COINGECKO_BASE_URL`
 - `COINGECKO_API_KEY`
 
-CoinGecko public/demo endpoints may be enough for experiments, but CoinGecko Pro requires an API key.
+CoinGecko is the default no-key fallback for local market data when `CMC_API_KEY` is not configured. `COINGECKO_API_KEY` is optional and only needed for paid endpoints or higher rate limits.
 
 To get a CoinGecko key:
 
@@ -79,7 +77,7 @@ To get a CoinGecko key:
 3. Copy the API key from the CoinGecko developer dashboard.
 4. Store it in `COINGECKO_API_KEY`.
 
-When implemented, the app should send this key in the `x-cg-pro-api-key` header.
+When configured, the app sends this key in the `x-cg-pro-api-key` header.
 
 CoinGecko auth docs: https://docs.coingecko.com/reference/authentication
 
@@ -219,7 +217,7 @@ curl -X POST http://localhost:5000/analyze \
   -d '{"symbol":"BTCUSDT","timeframe":"1h","market_data":[]}'
 ```
 
-If `market_data` is empty and no provider is specified, the app uses `provider=cmc`. Without `CMC_API_KEY`, it falls back to Binance public OHLCV for local development. You can still force Binance directly with `provider=binance`.
+If `market_data` is empty and no provider is specified, the app uses `provider=cmc`. Without `CMC_API_KEY`, it falls back to CoinGecko for local development. You can still force Binance directly with `provider=binance`.
 
 ## Optional Notifications
 

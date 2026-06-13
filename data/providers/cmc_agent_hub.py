@@ -9,6 +9,7 @@ import requests
 from app.env import load_env_file
 from data.cache import cache
 from data.providers.binance import BinanceProvider
+from data.providers.coingecko import CoinGeckoProvider
 from skill.signal_schema import Candle
 
 
@@ -49,10 +50,14 @@ class CoinMarketCapAgentHubProvider:
         return candles
 
     def _fallback_candles(self, symbol: str, timeframe: str, limit: int) -> list[Candle]:
-        fallback = os.getenv("CMC_FALLBACK_PROVIDER", "binance").strip().lower()
-        if fallback != "binance":
+        fallback = os.getenv("CMC_FALLBACK_PROVIDER", "coingecko").strip().lower()
+        if fallback == "coingecko":
+            return CoinGeckoProvider().get_candles(symbol=symbol, timeframe=timeframe, limit=limit)
+        if fallback == "binance":
+            return BinanceProvider().get_candles(symbol=symbol, timeframe=timeframe, limit=limit)
+        if fallback in {"", "none", "disabled"}:
             raise ValueError("CMC_API_KEY is required for provider='cmc'")
-        return BinanceProvider().get_candles(symbol=symbol, timeframe=timeframe, limit=limit)
+        raise ValueError(f"unsupported CMC_FALLBACK_PROVIDER: {fallback}")
 
     def _parse_ohlcv_response(self, payload: dict[str, Any], symbol: str, timeframe: str, limit: int) -> list[Candle]:
         quotes = _extract_quotes(payload)
@@ -130,4 +135,3 @@ def _timeframe_seconds(timeframe: str) -> int:
     if unit == "d":
         return amount * 86400
     raise ValueError(f"unsupported timeframe for CoinMarketCap provider: {timeframe}")
-
