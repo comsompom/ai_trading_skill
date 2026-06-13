@@ -30,5 +30,8 @@ class MemoryCache:
             if key.startswith(prefix):
                 self._items.pop(key, None)
 
+    def clear(self) -> None:
+        self._items.clear()
+
 
 cache = MemoryCache()

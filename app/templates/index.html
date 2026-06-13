@@ -615,9 +615,7 @@
         <div class="field">
           <label for="timeframe">Timeframe</label>
           <select id="timeframe">
-            <option value="15m">15m</option>
-            <option value="1h" selected>1h</option>
-            <option value="4h">4h</option>
+            <option value="4h" selected>4h</option>
             <option value="1d">1d</option>
           </select>
         </div>
@@ -684,7 +682,7 @@
         <section class="panel chart-panel">
           <div class="chart-header">
             <div class="chart-title">
-              <h2 id="chartTitle">BTCUSDT / 1h</h2>
+              <h2 id="chartTitle">BTCUSDT / 4h</h2>
               <p id="chartSubtitle">Generated local OHLCV candles</p>
             </div>
             <div class="market-stats">
@@ -959,7 +957,14 @@
       } catch (error) {
         if (state.mode === "live" && !state.candles.length) {
           generateDemoCandles();
-          setStatus(`Live refresh failed: ${error.message}. Demo candles loaded as fallback.`);
+          try {
+            const fallbackResult = await postJson("/analyze", payloadBase(true));
+            state.lastResult = fallbackResult;
+            renderAnalysis(fallbackResult);
+            setStatus(`Live refresh failed: ${error.message}. Demo suggestion shown as fallback.`);
+          } catch (fallbackError) {
+            setStatus(`Live refresh failed: ${error.message}. Demo fallback also failed: ${fallbackError.message}`);
+          }
         } else {
           setStatus(`Analysis failed: ${error.message}`);
         }

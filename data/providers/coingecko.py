@@ -25,20 +25,39 @@ class CoinGeckoProvider:
 
         interval_seconds = _timeframe_seconds(timeframe)
         now = int(datetime.now(timezone.utc).timestamp())
-        start = now - (interval_seconds * (limit + 4))
         base_url = os.getenv("COINGECKO_BASE_URL", self.default_base_url).rstrip("/")
+        if timeframe == "1d":
+            candles = self._get_daily_candles(
+                base_url=base_url,
+                coin_id=coin_id,
+                quote=quote,
+                symbol=symbol,
+                limit=limit,
+            )
+            cache.set(key, candles, ttl_seconds=120)
+            return candles
+
+        start = now - (interval_seconds * (limit + 4))
+        params = {
+            "vs_currency": quote,
+            "from": _iso_minute(start),
+            "to": _iso_minute(now),
+            "precision": "full",
+        }
         response = requests.get(
             f"{base_url}/coins/{coin_id}/market_chart/range",
-            headers=_headers(),
-            params={
-                "vs_currency": quote,
-                "from": start,
-                "to": now,
-                "interval": _coingecko_interval(interval_seconds),
-                "precision": "full",
-            },
+            headers=_headers(base_url),
+            params=params,
             timeout=20,
         )
+        if response.status_code == 400:
+            params.pop("precision", None)
+            response = requests.get(
+                f"{base_url}/coins/{coin_id}/market_chart/range",
+                headers=_headers(base_url),
+                params=params,
+                timeout=20,
+            )
         response.raise_for_status()
         candles = _prices_to_candles(
             response.json(),
@@ -50,12 +69,48 @@ class CoinGeckoProvider:
         cache.set(key, candles, ttl_seconds=120)
         return candles
 
+    def _get_daily_candles(self, *, base_url: str, coin_id: str, quote: str, symbol: str, limit: int) -> list[Candle]:
+        now = int(datetime.now(timezone.utc).timestamp())
+        days = min(max(limit + 4, 2), 90)
+        start = now - (days * 86400)
+        params = {
+            "vs_currency": quote,
+            "from": _iso_minute(start),
+            "to": _iso_minute(now),
+            "interval": "hourly",
+            "precision": "full",
+        }
+        response = requests.get(
+            f"{base_url}/coins/{coin_id}/market_chart/range",
+            headers=_headers(base_url),
+            params=params,
+            timeout=20,
+        )
+        if response.status_code == 400:
+            params.pop("precision", None)
+            response = requests.get(
+                f"{base_url}/coins/{coin_id}/market_chart/range",
+                headers=_headers(base_url),
+                params=params,
+                timeout=20,
+            )
+        response.raise_for_status()
+        return _prices_to_candles(
+            response.json(),
+            symbol=symbol.upper(),
+            timeframe="1d",
+            interval_seconds=86400,
+            limit=limit,
+        )
 
-def _headers() -> dict[str, str]:
+
+def _headers(base_url: str) -> dict[str, str]:
     api_key = os.getenv("COINGECKO_API_KEY", "").strip()
     if not api_key:
         return {}
-    return {"x-cg-pro-api-key": api_key}
+    if "pro-api.coingecko.com" in base_url:
+        return {"x-cg-pro-api-key": api_key}
+    return {"x-cg-demo-api-key": api_key}
 
 
 def _prices_to_candles(
@@ -100,12 +155,9 @@ def _prices_to_candles(
     return candles
 
 
-def _coingecko_interval(interval_seconds: int) -> str:
-    if interval_seconds < 3600:
-        return "5m"
-    if interval_seconds < 86400:
-        return "hourly"
-    return "daily"
+def _iso_minute(timestamp: int) -> str:
+    return datetime.fromtimestamp(timestamp, timezone.utc).strftime("%Y-%m-%dT%H:%M")
+
 
 
 def _coingecko_coin_id(symbol: str) -> str:
