@@ -1,5 +1,7 @@
 # AI Trading Skill
 
+![AI Trading Skill logo](ai_crypto_skill_logo.jpg)
+
 Track 2 CMC-powered Strategy Skill for a deterministic, backtestable crypto strategy based on our own trading logic and analysis. This is not a live trading agent and does not sign transactions.
 
 The core Track 2 product does not depend on the BNB AI Agent SDK. BNB SDK integration is reserved for optional bonus-prize enhancement, such as agent identity, discovery, or job-service wrapping around the existing strategy.
