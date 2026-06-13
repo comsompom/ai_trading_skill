@@ -7,6 +7,10 @@ from skill.spec import skill_spec
 def test_skill_spec_describes_fast_mcp_tools():
     spec = skill_spec()
     assert spec["not_live_trading"] is True
+    assert spec["core_product"]["market_data_primary_provider"] == "cmc"
+    assert spec["core_product"]["uses_own_strategy_and_analysis"] is True
+    assert spec["core_product"]["requires_bnb_ai_agent_sdk"] is False
+    assert spec["optional_bonus_integrations"]["bnb_ai_agent_sdk"]["core_dependency"] is False
     assert spec["interfaces"]["fast_mcp"]["module"] == "agent.mcp_server"
     assert set(spec["interfaces"]["fast_mcp"]["tools"]) == {
         "get_skill_spec",
@@ -19,6 +23,8 @@ def test_skill_spec_describes_fast_mcp_tools():
     assert "skill://spec" in spec["interfaces"]["fast_mcp"]["resources"]
     assert "trading_decision_request" in spec["interfaces"]["fast_mcp"]["prompts"]
     assert "market_data" in spec["input_schema"]["properties"]
+    assert spec["input_schema"]["properties"]["provider"]["default"] == "cmc"
+    assert "cmc" in spec["input_schema"]["properties"]["provider"]["enum"]
     assert spec["strategy"]["not_live_trading"] is True
 
 

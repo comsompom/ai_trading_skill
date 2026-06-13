@@ -1,6 +1,8 @@
 # Project Structure
 
-This project is a deterministic crypto strategy Skill. It analyzes normalized OHLCV candles, calculates indicator-derived features, scores BUY and SELL evidence, and returns `BUY`, `SELL`, or `HOLD`. It does not place orders, sign transactions, or manage live funds.
+This project is a CMC-powered deterministic crypto strategy Skill. It analyzes normalized OHLCV candles, calculates indicator-derived features from our own strategy logic, scores BUY and SELL evidence, and returns `BUY`, `SELL`, or `HOLD`. It does not place orders, sign transactions, or manage live funds.
+
+The core Track 2 product uses CoinMarketCap as the primary provider when `market_data` is omitted. Binance remains a local no-key fallback and direct provider option. BNB AI Agent SDK integration is optional bonus/demo work, not a core dependency.
 
 ## Top-Level Layout
 
@@ -78,6 +80,16 @@ client payload
   -> indicator feature calculation
   -> scoring and risk context
   -> StrategyResult dict
+```
+
+Default provider behavior:
+
+```text
+market_data supplied -> use supplied normalized candles
+market_data empty and provider omitted -> use provider=cmc
+provider=cmc with CMC_API_KEY -> fetch CoinMarketCap historical OHLCV
+provider=cmc without CMC_API_KEY -> fall back to Binance when CMC_FALLBACK_PROVIDER=binance
+provider=binance -> fetch Binance public OHLCV directly
 ```
 
 `make_trading_decision` wraps the raw `StrategyResult` in a non-executing trade plan:

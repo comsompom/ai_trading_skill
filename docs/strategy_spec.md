@@ -1,6 +1,8 @@
 # Strategy Spec
 
-This Track 2 Skill is a deterministic, backtestable crypto strategy. It does not sign transactions or execute live trades.
+This Track 2 Skill is a CMC-powered deterministic, backtestable crypto strategy based on our own indicator logic and analysis. It does not sign transactions or execute live trades.
+
+CoinMarketCap is the primary provider when candles are not supplied in the request. Binance remains a local fallback for no-key development. BNB AI Agent SDK usage is optional bonus/demo work and is not required by the core strategy.
 
 ## Inputs
 

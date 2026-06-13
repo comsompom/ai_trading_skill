@@ -263,8 +263,11 @@ class StrategySkill:
 
 def strategy_spec() -> dict:
     return {
-        "name": "CMC-style VWAP Fisher Momentum Strategy Skill",
+        "name": "CMC-powered VWAP Fisher Momentum Strategy Skill",
         "mode": "deterministic_track_2_backtestable",
+        "primary_market_data_provider": "cmc",
+        "uses_own_strategy_and_analysis": True,
+        "requires_bnb_ai_agent_sdk": False,
         "decisions": ["BUY", "SELL", "HOLD"],
         "feature_groups": ["regime", "structure", "momentum", "trigger", "risk_context"],
         "rules": BACKTESTABLE_RULES,

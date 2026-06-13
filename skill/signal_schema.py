@@ -100,7 +100,7 @@ class AnalyzeRequest:
     timeframe: str
     lookback: int = 300
     risk_profile: str = "balanced"
-    provider: str = "binance"
+    provider: str = "cmc"
     market_data: list[Candle] = field(default_factory=list)
 
     @classmethod
@@ -119,7 +119,6 @@ class AnalyzeRequest:
             timeframe=timeframe,
             lookback=min(lookback, 1000),
             risk_profile=str(payload.get("risk_profile", "balanced")),
-            provider=str(payload.get("provider", "binance")).lower(),
+            provider=str(payload.get("provider", "cmc")).lower(),
             market_data=market_data,
         )
-

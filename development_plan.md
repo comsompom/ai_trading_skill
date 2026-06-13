@@ -2,9 +2,9 @@
 
 ## Goal
 
-Build a Track 2 CMC-style Strategy Skill that analyzes crypto market data, applies our ported MetaTrader/MQL indicator logic, produces a backtestable trading decision, exposes the workflow through a Flask app, validates/demos the Skill through BNB AI Agent SDK, and publishes analysis results to Telegram and Discord.
+Build a Track 2 CMC-powered Strategy Skill that analyzes crypto market data, applies our own ported MetaTrader/MQL indicator logic, produces a backtestable trading decision, exposes the workflow through a Flask app, and publishes analysis results to Telegram and Discord.
 
-This is **not** a live trading agent. It does not execute trades, sign transactions, or register for Track 1 on-chain competition.
+This is **not** a live trading agent. It does not execute trades, sign transactions, or register for Track 1 on-chain competition. The BNB AI Agent SDK may be used only as an optional bonus-prize enhancement, not as a dependency for the core Track 2 product.
 
 ## Architecture
 
@@ -26,6 +26,7 @@ ai_trading_skill/
     custom_mql_ported/
   data/
     providers/
+      cmc_agent_hub.py
       coingecko.py
       coinpaprika.py
       defillama.py
@@ -74,7 +75,7 @@ Normalized candle format:
 
 Recommended providers:
 
-- CoinMarketCap / CMC Agent Hub for hackathon alignment.
+- CoinMarketCap / CMC Agent Hub as the primary Track 2 market-data path.
 - CoinGecko for broad market data and historical data.
 - CoinPaprika for free/no-card price, volume, market-cap, and historical data.
 - DefiLlama for free DeFi/on-chain context, TVL, DEX volumes, stablecoins, yields, and open interest.
@@ -82,11 +83,11 @@ Recommended providers:
 
 Implementation order:
 
-1. Binance OHLCV adapter.
-2. CoinPaprika adapter.
-3. DefiLlama context adapter.
-4. CoinGecko adapter.
-5. CMC adapter when access details are available.
+1. CoinMarketCap / CMC Agent Hub OHLCV adapter.
+2. Binance OHLCV fallback adapter for no-key local development.
+3. CoinPaprika adapter.
+4. DefiLlama context adapter.
+5. CoinGecko adapter.
 
 ## 3. Port MQL Indicators
 
@@ -238,7 +239,7 @@ Risk: wait for pullback or confirmed breakout.
 
 ## 7. Add BNB AI Agent SDK Demo Layer
 
-Use BNB AI Agent SDK as a validation/demo layer, not as the core Track 2 requirement.
+Use BNB AI Agent SDK as an optional bonus/demo layer, not as the core Track 2 requirement.
 
 Planned usage:
 

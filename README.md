@@ -1,6 +1,8 @@
 # AI Trading Skill
 
-Track 2 CMC-style Strategy Skill for a deterministic, backtestable crypto strategy. This is not a live trading agent and does not sign transactions.
+Track 2 CMC-powered Strategy Skill for a deterministic, backtestable crypto strategy based on our own trading logic and analysis. This is not a live trading agent and does not sign transactions.
+
+The core Track 2 product does not depend on the BNB AI Agent SDK. BNB SDK integration is reserved for optional bonus-prize enhancement, such as agent identity, discovery, or job-service wrapping around the existing strategy.
 
 ## Documentation
 
@@ -26,6 +28,19 @@ cp .env.example .env
 Fill only the values you need. Public Binance candle data works without an API key. Private exchange data, account data, trading, paid market data, explorer lookups, and notifications require the provider-specific keys below.
 
 Never commit `.env`. It can contain exchange credentials, webhook URLs, and bot tokens.
+
+### CoinMarketCap / CMC Agent Hub
+
+Variables:
+
+- `CMC_API_KEY`
+- `CMC_BASE_URL`
+- `CMC_CONVERT`
+- `CMC_FALLBACK_PROVIDER`
+
+`provider=cmc` is the default market-data path for the Strategy Skill. Set `CMC_API_KEY` to use CoinMarketCap historical OHLCV data. Without a CMC key, local development falls back to Binance public candles when `CMC_FALLBACK_PROVIDER=binance`.
+
+Use this provider as the core CMC-powered data path for Track 2. The strategy itself remains our own deterministic indicator and scoring logic.
 
 ### Binance
 
@@ -204,7 +219,7 @@ curl -X POST http://localhost:5000/analyze \
   -d '{"symbol":"BTCUSDT","timeframe":"1h","market_data":[]}'
 ```
 
-If `market_data` is empty, the app tries Binance public OHLCV through `provider=binance`.
+If `market_data` is empty and no provider is specified, the app uses `provider=cmc`. Without `CMC_API_KEY`, it falls back to Binance public OHLCV for local development. You can still force Binance directly with `provider=binance`.
 
 ## Optional Notifications
 

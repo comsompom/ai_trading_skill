@@ -10,8 +10,22 @@ def skill_spec() -> dict:
         "name": "AI Trading Skill",
         "version": "0.1.0",
         "track": "track_2_strategy_skill",
-        "description": "Deterministic, backtestable crypto strategy Skill built from ported MT4 indicator logic. It returns BUY, SELL, or HOLD and never executes trades.",
+        "description": "CMC-powered deterministic, backtestable crypto strategy Skill built from our own ported MT4 indicator logic and analysis. It returns BUY, SELL, or HOLD and never executes trades.",
         "not_live_trading": True,
+        "core_product": {
+            "type": "track_2_strategy_skill",
+            "market_data_primary_provider": "cmc",
+            "strategy_owner": "project",
+            "uses_own_strategy_and_analysis": True,
+            "requires_bnb_ai_agent_sdk": False,
+        },
+        "optional_bonus_integrations": {
+            "bnb_ai_agent_sdk": {
+                "role": "optional bonus-prize enhancement",
+                "core_dependency": False,
+                "purpose": "agent identity, discovery, and optional job-service wrapper around the existing strategy",
+            }
+        },
         "interfaces": {
             "flask": {
                 "health": "GET /health",
@@ -49,8 +63,8 @@ def skill_spec() -> dict:
                 },
                 "provider": {
                     "type": "string",
-                    "enum": ["binance", "coingecko", "coinpaprika", "defillama"],
-                    "default": "binance",
+                    "enum": ["cmc", "coinmarketcap", "cmc_agent_hub", "binance", "coingecko", "coinpaprika", "defillama"],
+                    "default": "cmc",
                 },
                 "market_data": {
                     "type": "array",
@@ -105,6 +119,7 @@ def skill_spec() -> dict:
             "strategy specification for agent discovery",
             "normalized candle analysis",
             "provider-backed analysis when market_data is omitted",
+            "CoinMarketCap-powered market data path with Binance fallback for local no-key development",
             "backtestable rules and risk assumptions",
             "ABCD_hand_v4 projection context with D target and Fibonacci levels",
             "De_Mark_Support_V2 support/resistance TD breakout context",
