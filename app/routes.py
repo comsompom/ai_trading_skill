@@ -16,6 +16,32 @@ from skill.strategy_skill import strategy_spec
 api = Blueprint("api", __name__)
 
 
+def _format_analysis_telegram_message(result: dict) -> str:
+    risk = result.get("risk_assumptions") or {}
+    scores = result.get("score_breakdown") or {}
+    lines = [
+        "AI Trading Skill Analysis",
+        f"{result.get('symbol', '-')}/{result.get('timeframe', '-')}: {result.get('decision', '-')}",
+        f"Confidence: {_format_percent(result.get('confidence'))}",
+        f"Probability: {_format_percent(result.get('probability_of_success'))} ({result.get('probability_model', '-')})",
+        f"Buy/Sell score: {_format_percent(scores.get('buy_score'))} / {_format_percent(scores.get('sell_score'))}",
+        f"Risk: {risk.get('risk_profile', '-')} profile, {risk.get('reward_to_risk', '-')}R reward/risk",
+        f"Long stop/target: {risk.get('long_stop', '-')} / {risk.get('long_target', '-')}",
+        f"Short stop/target: {risk.get('short_stop', '-')} / {risk.get('short_target', '-')}",
+        f"Reason: {result.get('explanation', '-')}",
+    ]
+    return "\n".join(lines)
+
+
+def _format_percent(value) -> str:
+    if value is None:
+        return "-"
+    try:
+        return f"{float(value) * 100:.1f}%"
+    except (TypeError, ValueError):
+        return "-"
+
+
 @api.get("/")
 def index():
     return render_template("index.html")
@@ -50,6 +76,15 @@ def analyze():
         return jsonify({"error": str(exc)}), 400
     except requests.RequestException as exc:
         return jsonify({"error": f"market data provider error: {exc}"}), 502
+    if payload.get("notify_telegram"):
+        try:
+            result["notifications"] = {
+                "telegram": send_telegram(_format_analysis_telegram_message(result)),
+            }
+        except requests.RequestException as exc:
+            result["notifications"] = {
+                "telegram": {"sent": False, "reason": f"Telegram request failed: {exc}"},
+            }
     return jsonify(result)
 
 

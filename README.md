@@ -228,6 +228,8 @@ Telegram:
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_CHAT_ID`
 
+When these are configured, pressing `Run Skill Analysis` in the Flask UI sends the completed analysis summary to Telegram. API callers can request the same behavior by adding `"notify_telegram": true` to the `/analyze` JSON payload.
+
 Discord:
 
 - `DISCORD_WEBHOOK_URL`

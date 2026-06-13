@@ -101,3 +101,64 @@ def test_market_data_route_returns_provider_error(monkeypatch):
     payload = response.get_json()
     assert response.status_code == 502
     assert "market data provider error" in payload["error"]
+
+
+def test_analyze_route_sends_telegram_when_requested(monkeypatch):
+    captured = {}
+
+    def fake_analyze_payload(payload):
+        return {
+            "symbol": "BTCUSDT",
+            "timeframe": "4h",
+            "decision": "BUY",
+            "confidence": 0.72,
+            "probability_of_success": 0.57,
+            "probability_model": "heuristic",
+            "score_breakdown": {"buy_score": 0.72, "sell_score": 0.21},
+            "risk_assumptions": {
+                "risk_profile": "balanced",
+                "reward_to_risk": 1.6,
+                "long_stop": 100,
+                "long_target": 116,
+                "short_stop": 110,
+                "short_target": 94,
+            },
+            "explanation": "test explanation",
+        }
+
+    def fake_send_telegram(message):
+        captured["message"] = message
+        return {"sent": True, "status_code": 200}
+
+    monkeypatch.setattr("app.routes.analyze_payload", fake_analyze_payload)
+    monkeypatch.setattr("app.routes.send_telegram", fake_send_telegram)
+
+    app = create_app()
+    client = app.test_client()
+    response = client.post("/analyze", json={"notify_telegram": True})
+    payload = response.get_json()
+
+    assert response.status_code == 200
+    assert payload["notifications"]["telegram"]["sent"] is True
+    assert "AI Trading Skill Analysis" in captured["message"]
+    assert "BTCUSDT/4h: BUY" in captured["message"]
+    assert "Confidence: 72.0%" in captured["message"]
+
+
+def test_analyze_route_does_not_send_telegram_by_default(monkeypatch):
+    def fake_analyze_payload(payload):
+        return {"symbol": "BTCUSDT", "timeframe": "4h", "decision": "HOLD", "confidence": 0.5}
+
+    def fail_send_telegram(message):
+        raise AssertionError("Telegram should not be called unless notify_telegram is requested")
+
+    monkeypatch.setattr("app.routes.analyze_payload", fake_analyze_payload)
+    monkeypatch.setattr("app.routes.send_telegram", fail_send_telegram)
+
+    app = create_app()
+    client = app.test_client()
+    response = client.post("/analyze", json={})
+    payload = response.get_json()
+
+    assert response.status_code == 200
+    assert "notifications" not in payload

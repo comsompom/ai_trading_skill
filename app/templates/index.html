@@ -937,7 +937,8 @@
       }
     }
 
-    async function refreshAndAnalyze() {
+    async function refreshAndAnalyze(options = {}) {
+      const notifyTelegram = options.notifyTelegram === true;
       if (state.isRefreshing) return;
       state.isRefreshing = true;
       setBusy(true);
@@ -950,18 +951,18 @@
         } else if (!state.candles.length) {
           generateDemoCandles();
         }
-        const result = await postJson("/analyze", payloadBase(true));
+        const result = await postJson("/analyze", { ...payloadBase(true), notify_telegram: notifyTelegram });
         state.lastResult = result;
         renderAnalysis(result);
-        setStatus(`Suggestion: ${result.decision} at ${Math.round(result.confidence * 100)}% confidence for ${selectedSymbol()}.`);
+        setStatus(analysisStatus(result));
       } catch (error) {
         if (state.mode === "live" && !state.candles.length) {
           generateDemoCandles();
           try {
-            const fallbackResult = await postJson("/analyze", payloadBase(true));
+            const fallbackResult = await postJson("/analyze", { ...payloadBase(true), notify_telegram: notifyTelegram });
             state.lastResult = fallbackResult;
             renderAnalysis(fallbackResult);
-            setStatus(`Live refresh failed: ${error.message}. Demo suggestion shown as fallback.`);
+            setStatus(`Live refresh failed: ${error.message}. ${analysisStatus(fallbackResult, "Demo suggestion shown as fallback.")}`);
           } catch (fallbackError) {
             setStatus(`Live refresh failed: ${error.message}. Demo fallback also failed: ${fallbackError.message}`);
           }
@@ -975,7 +976,20 @@
     }
 
     async function runAnalyze() {
-      await refreshAndAnalyze();
+      await refreshAndAnalyze({ notifyTelegram: true });
+    }
+
+    function analysisStatus(result, prefix = "") {
+      const suggestion = `Suggestion: ${result.decision} at ${Math.round(result.confidence * 100)}% confidence for ${selectedSymbol()}.`;
+      const telegram = result.notifications && result.notifications.telegram;
+      if (!telegram) return prefix ? `${prefix} ${suggestion}` : suggestion;
+      if (telegram.sent) {
+        const message = `${suggestion} Telegram notification sent.`;
+        return prefix ? `${prefix} ${message}` : message;
+      }
+      const reason = telegram.reason || `Telegram returned status ${telegram.status_code || "unknown"}`;
+      const message = `${suggestion} Telegram notification not sent: ${reason}`;
+      return prefix ? `${prefix} ${message}` : message;
     }
 
     async function runBacktest() {
