@@ -173,10 +173,92 @@ def test_coingecko_provider_aggregates_market_chart_prices(monkeypatch):
     assert candles[1].close == 107.0
 
 
-def test_coingecko_provider_builds_daily_ohlc_from_hourly_prices(monkeypatch):
+def test_coingecko_provider_uses_daily_ohlc_endpoint(monkeypatch):
     cache.clear()
 
     class FakeResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return [
+                [1_700_006_400_000, 100.0, 108.0, 96.0, 103.0],
+                [1_700_092_800_000, 104.0, 111.0, 101.0, 109.0],
+            ]
+
+    captured = {}
+
+    def fake_get(url, headers, params, timeout):
+        captured["url"] = url
+        captured["params"] = params
+        return FakeResponse()
+
+    monkeypatch.setenv("COINGECKO_API_KEY", "")
+    monkeypatch.setenv("COINGECKO_BASE_URL", "https://api.coingecko.com/api/v3")
+    monkeypatch.setattr("data.providers.coingecko.requests.get", fake_get)
+
+    candles = CoinGeckoProvider().get_candles("LINKUSDT", "1d", 2)
+
+    assert captured["url"].endswith("/coins/chainlink/ohlc")
+    assert captured["params"]["days"] == "7"
+    assert captured["params"]["interval"] == "daily"
+    assert len(candles) == 2
+    assert candles[0].open == 100.0
+    assert candles[0].high == 108.0
+    assert candles[0].low == 96.0
+    assert candles[0].close == 103.0
+    assert candles[1].open == 104.0
+    assert candles[1].high == 111.0
+    assert candles[1].low == 101.0
+    assert candles[1].close == 109.0
+
+
+def test_coingecko_provider_daily_uses_365_day_window_for_300_candles(monkeypatch):
+    cache.clear()
+
+    class FakeResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return [
+                [1_700_000_000_000 + i * 86_400_000, 100.0 + i, 101.0 + i, 99.0 + i, 100.5 + i]
+                for i in range(300)
+            ]
+
+    captured = {}
+
+    def fake_get(url, headers, params, timeout):
+        captured["params"] = params
+        return FakeResponse()
+
+    monkeypatch.setenv("COINGECKO_API_KEY", "")
+    monkeypatch.setenv("COINGECKO_BASE_URL", "https://api.coingecko.com/api/v3")
+    monkeypatch.setattr("data.providers.coingecko.requests.get", fake_get)
+
+    candles = CoinGeckoProvider().get_candles("BTCUSDT", "1d", 300)
+
+    assert captured["params"]["days"] == "365"
+    assert len(candles) == 300
+
+
+def test_coingecko_provider_daily_falls_back_to_hourly_range(monkeypatch):
+    cache.clear()
+
+    class OhlcResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return []
+
+    class RangeResponse:
         status_code = 200
 
         def raise_for_status(self):
@@ -197,11 +279,11 @@ def test_coingecko_provider_builds_daily_ohlc_from_hourly_prices(monkeypatch):
                 "total_volumes": [],
             }
 
-    captured = {}
+    urls = []
 
     def fake_get(url, headers, params, timeout):
-        captured["params"] = params
-        return FakeResponse()
+        urls.append(url)
+        return OhlcResponse() if url.endswith("/ohlc") else RangeResponse()
 
     monkeypatch.setenv("COINGECKO_API_KEY", "")
     monkeypatch.setenv("COINGECKO_BASE_URL", "https://api.coingecko.com/api/v3")
@@ -209,16 +291,10 @@ def test_coingecko_provider_builds_daily_ohlc_from_hourly_prices(monkeypatch):
 
     candles = CoinGeckoProvider().get_candles("LINKUSDT", "1d", 2)
 
-    assert captured["params"]["interval"] == "hourly"
-    assert len(candles) == 2
-    assert candles[0].open == 100.0
+    assert urls[0].endswith("/ohlc")
+    assert urls[1].endswith("/market_chart/range")
     assert candles[0].high == 108.0
-    assert candles[0].low == 96.0
-    assert candles[0].close == 103.0
-    assert candles[1].open == 104.0
-    assert candles[1].high == 111.0
     assert candles[1].low == 101.0
-    assert candles[1].close == 109.0
 
 
 def test_coingecko_provider_uses_demo_key_header(monkeypatch):

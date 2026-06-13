@@ -70,6 +70,48 @@ class CoinGeckoProvider:
         return candles
 
     def _get_daily_candles(self, *, base_url: str, coin_id: str, quote: str, symbol: str, limit: int) -> list[Candle]:
+        days = _coingecko_ohlc_days(limit)
+        params = {
+            "vs_currency": quote,
+            "days": days,
+            "interval": "daily",
+            "precision": "full",
+        }
+        response = requests.get(
+            f"{base_url}/coins/{coin_id}/ohlc",
+            headers=_headers(base_url),
+            params=params,
+            timeout=20,
+        )
+        if response.status_code == 400:
+            params.pop("interval", None)
+            response = requests.get(
+                f"{base_url}/coins/{coin_id}/ohlc",
+                headers=_headers(base_url),
+                params=params,
+                timeout=20,
+            )
+        response.raise_for_status()
+        candles = _ohlc_rows_to_candles(response.json(), symbol=symbol.upper(), timeframe="1d", limit=limit)
+        if len(candles) < min(limit, 60):
+            return self._get_daily_candles_from_hourly_range(
+                base_url=base_url,
+                coin_id=coin_id,
+                quote=quote,
+                symbol=symbol,
+                limit=limit,
+            )
+        return candles
+
+    def _get_daily_candles_from_hourly_range(
+        self,
+        *,
+        base_url: str,
+        coin_id: str,
+        quote: str,
+        symbol: str,
+        limit: int,
+    ) -> list[Candle]:
         now = int(datetime.now(timezone.utc).timestamp())
         days = min(max(limit + 4, 2), 90)
         start = now - (days * 86400)
@@ -153,6 +195,42 @@ def _prices_to_candles(
     if len(candles) < min(limit, 60):
         raise ValueError("CoinGecko returned too few candles for this timeframe/lookback")
     return candles
+
+
+def _ohlc_rows_to_candles(payload: list[list[Any]], *, symbol: str, timeframe: str, limit: int) -> list[Candle]:
+    candles = [
+        Candle(
+            symbol=symbol,
+            timeframe=timeframe,
+            timestamp=int(row[0]) // 1000,
+            open=float(row[1]),
+            high=float(row[2]),
+            low=float(row[3]),
+            close=float(row[4]),
+            volume=0.0,
+        )
+        for row in sorted(payload, key=lambda item: item[0])
+        if len(row) >= 5
+    ]
+    return candles[-limit:]
+
+
+def _coingecko_ohlc_days(limit: int) -> str:
+    if limit <= 1:
+        return "1"
+    if limit <= 7:
+        return "7"
+    if limit <= 14:
+        return "14"
+    if limit <= 30:
+        return "30"
+    if limit <= 90:
+        return "90"
+    if limit <= 180:
+        return "180"
+    if limit <= 365:
+        return "365"
+    return "max"
 
 
 def _iso_minute(timestamp: int) -> str:

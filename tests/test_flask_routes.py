@@ -16,6 +16,10 @@ def test_index_route_lists_endpoints():
     assert "Run Skill Analysis" in body
     assert "priceChart" in body
     assert "Binance explicit" not in body
+    assert '<option value="4h" selected>4h</option>' in body
+    assert '<option value="1d">1d</option>' in body
+    assert '<option value="15m">' not in body
+    assert '<option value="1h"' not in body
 
 
 def test_favicon_route_returns_no_content():

@@ -156,7 +156,7 @@ for i in range(120):
     price += 0.15
     candles.append({
         "symbol": "BTCUSDT",
-        "timeframe": "1h",
+        "timeframe": "4h",
         "timestamp": now - (119 - i) * 3600,
         "open": price,
         "high": price + 1.2,
@@ -167,7 +167,7 @@ for i in range(120):
 
 payload = {
     "symbol": "BTCUSDT",
-    "timeframe": "1h",
+    "timeframe": "4h",
     "lookback": 120,
     "risk_profile": "balanced",
     "market_data": candles,
@@ -205,7 +205,7 @@ for i in range(140):
     price += drift
     candles.append({
         "symbol": "BTCUSDT",
-        "timeframe": "1h",
+        "timeframe": "4h",
         "timestamp": now - (139 - i) * 3600,
         "open": price,
         "high": price + 1.5,
@@ -216,7 +216,7 @@ for i in range(140):
 
 payload = {
     "symbol": "BTCUSDT",
-    "timeframe": "1h",
+    "timeframe": "4h",
     "lookback": 140,
     "risk_profile": "balanced",
     "market_data": candles,
@@ -250,7 +250,7 @@ Use this only when your machine has internet access. With `CMC_API_KEY` empty an
 ```bash
 curl -X POST http://localhost:5050/analyze \
   -H "Content-Type: application/json" \
-  -d '{"symbol":"BTCUSDT","timeframe":"1h","lookback":80,"provider":"cmc","risk_profile":"balanced","market_data":[]}'
+  -d '{"symbol":"BTCUSDT","timeframe":"4h","lookback":80,"provider":"cmc","risk_profile":"balanced","market_data":[]}'
 ```
 
 If CoinGecko rate limits or blocks the request, use the offline smoke test above. The offline test is the best demo path when you want a reliable proof that the project itself works.

@@ -627,7 +627,7 @@
 
         <div class="field">
           <label for="visibleCandles">Visible Candles</label>
-          <input id="visibleCandles" type="number" min="30" max="160" value="80">
+          <input id="visibleCandles" type="number" min="30" max="500" value="120">
         </div>
 
         <div class="field">
@@ -848,7 +848,7 @@
 
     function updateChart() {
       resizeChart();
-      const visibleCount = Math.max(30, Math.min(160, Number($("visibleCandles").value || 80)));
+      const visibleCount = Math.max(30, Math.min(500, Number($("visibleCandles").value || 120)));
       const candles = state.candles.slice(-visibleCount);
       const width = chart.width;
       const height = chart.height;
