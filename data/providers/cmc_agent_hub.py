@@ -44,13 +44,18 @@ class CoinMarketCapAgentHubProvider:
             },
             timeout=20,
         )
-        response.raise_for_status()
-        candles = self._parse_ohlcv_response(response.json(), symbol=symbol.upper(), timeframe=timeframe, limit=limit)
+        try:
+            response.raise_for_status()
+            candles = self._parse_ohlcv_response(response.json(), symbol=symbol.upper(), timeframe=timeframe, limit=limit)
+        except (requests.HTTPError, ValueError):
+            return self._fallback_candles(symbol=symbol, timeframe=timeframe, limit=limit)
         cache.set(key, candles, ttl_seconds=60)
         return candles
 
     def _fallback_candles(self, symbol: str, timeframe: str, limit: int) -> list[Candle]:
         fallback = os.getenv("CMC_FALLBACK_PROVIDER", "coingecko").strip().lower()
+        if fallback == "binance" and os.getenv("CMC_ALLOW_BINANCE_FALLBACK", "").strip().lower() not in {"1", "true", "yes"}:
+            fallback = "coingecko"
         if fallback == "coingecko":
             return CoinGeckoProvider().get_candles(symbol=symbol, timeframe=timeframe, limit=limit)
         if fallback == "binance":

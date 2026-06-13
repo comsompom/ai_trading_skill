@@ -182,6 +182,88 @@
       background: #fff;
     }
 
+    .symbol-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .inline-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 12px;
+      background: #fbfcfd;
+    }
+
+    .toggle-row span {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .toggle-row small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .switch {
+      position: relative;
+      width: 44px;
+      min-width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      background: #c9d2dd;
+      border-radius: 999px;
+      transition: background 0.18s ease;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(23, 32, 42, 0.24);
+      transition: transform 0.18s ease;
+    }
+
+    .switch input:checked + .slider {
+      background: var(--blue);
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(20px);
+    }
+
     .segmented {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -254,9 +336,9 @@
     }
 
     .chart-panel {
-      min-height: 420px;
+      min-height: 520px;
       display: grid;
-      grid-template-rows: auto minmax(280px, 1fr);
+      grid-template-rows: auto minmax(390px, 1fr);
     }
 
     .chart-header {
@@ -305,7 +387,7 @@
 
     .chart-wrap {
       padding: 0 16px 16px;
-      min-height: 300px;
+      min-height: 390px;
     }
 
     canvas {
@@ -504,16 +586,30 @@
     <main>
       <aside class="panel controls">
         <h2 class="panel-title">Market Setup</h2>
-        <p class="panel-note">Analyze generated candles offline or fetch provider-backed candles, then inspect the strategy decision and risk context.</p>
+        <p class="panel-note">Fetch provider-backed candles, choose the market, and let the skill refresh suggestions automatically. Demo mode is available for offline proof.</p>
 
         <div class="segmented" role="group" aria-label="Market data mode">
-          <button type="button" id="demoMode" class="active">Demo</button>
-          <button type="button" id="liveMode">Live</button>
+          <button type="button" id="liveMode" class="active">Live</button>
+          <button type="button" id="demoMode">Demo</button>
         </div>
 
         <div class="field">
-          <label for="symbol">Symbol</label>
-          <input id="symbol" value="BTCUSDT" autocomplete="off">
+          <label for="symbolPreset">Symbol</label>
+          <div class="symbol-grid">
+            <select id="symbolPreset">
+              <option value="BTCUSDT" selected>BTCUSDT - Bitcoin</option>
+              <option value="ETHUSDT">ETHUSDT - Ethereum</option>
+              <option value="BNBUSDT">BNBUSDT - BNB</option>
+              <option value="SOLUSDT">SOLUSDT - Solana</option>
+              <option value="XRPUSDT">XRPUSDT - XRP</option>
+              <option value="ADAUSDT">ADAUSDT - Cardano</option>
+              <option value="DOGEUSDT">DOGEUSDT - Dogecoin</option>
+              <option value="AVAXUSDT">AVAXUSDT - Avalanche</option>
+              <option value="LINKUSDT">LINKUSDT - Chainlink</option>
+              <option value="CUSTOM">Custom symbol</option>
+            </select>
+            <input id="symbol" value="BTCUSDT" autocomplete="off" aria-label="Custom symbol">
+          </div>
         </div>
 
         <div class="field">
@@ -532,6 +628,11 @@
         </div>
 
         <div class="field">
+          <label for="visibleCandles">Visible Candles</label>
+          <input id="visibleCandles" type="number" min="30" max="160" value="80">
+        </div>
+
+        <div class="field">
           <label for="riskProfile">Risk Profile</label>
           <select id="riskProfile">
             <option value="conservative">Conservative</option>
@@ -543,10 +644,30 @@
         <div class="field">
           <label for="provider">Provider</label>
           <select id="provider">
-            <option value="cmc" selected>CMC with fallback</option>
-            <option value="coingecko">CoinGecko</option>
-            <option value="binance">Binance explicit</option>
+            <option value="coingecko" selected>CoinGecko</option>
+            <option value="cmc">CMC with CoinGecko fallback</option>
           </select>
+        </div>
+
+        <div class="field">
+          <label for="refreshSeconds">Auto Check Interval</label>
+          <select id="refreshSeconds">
+            <option value="15">15 seconds</option>
+            <option value="30" selected>30 seconds</option>
+            <option value="60">1 minute</option>
+            <option value="300">5 minutes</option>
+          </select>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <span>Auto Check Market</span>
+            <small>Refresh candles and run the skill repeatedly in live mode.</small>
+          </div>
+          <label class="switch" aria-label="Auto check market">
+            <input id="autoCheck" type="checkbox">
+            <span class="slider"></span>
+          </label>
         </div>
 
         <div class="actions">
@@ -556,7 +677,7 @@
           <button class="btn" id="backtestBtn" type="button">Run Backtest</button>
         </div>
 
-        <div class="status-line" id="statusLine">Ready. Demo candles are loaded locally.</div>
+        <div class="status-line" id="statusLine">Ready. Live mode will load provider-backed market data.</div>
       </aside>
 
       <section class="workspace">
@@ -609,9 +730,11 @@
 
   <script>
     const state = {
-      mode: "demo",
+      mode: "live",
       candles: [],
       lastResult: null,
+      autoTimer: null,
+      isRefreshing: false,
     };
 
     const $ = (id) => document.getElementById(id);
@@ -644,9 +767,13 @@
       });
     }
 
+    function selectedSymbol() {
+      return $("symbol").value.trim().toUpperCase() || "BTCUSDT";
+    }
+
     function payloadBase(includeCandles = true) {
       return {
-        symbol: $("symbol").value.trim().toUpperCase() || "BTCUSDT",
+        symbol: selectedSymbol(),
         timeframe: $("timeframe").value,
         lookback: Math.max(80, Math.min(500, Number($("lookback").value || 140))),
         provider: $("provider").value,
@@ -672,7 +799,7 @@
         const low = Math.min(open, close) - 0.7 - Math.abs(wave) * 0.2;
         price = close;
         candles.push({
-          symbol: $("symbol").value.trim().toUpperCase() || "BTCUSDT",
+          symbol: selectedSymbol(),
           timeframe: tf,
           timestamp: now - (lookback - 1 - i) * step,
           open: round(open),
@@ -709,11 +836,25 @@
       }
     }
 
+    function resizeChart() {
+      const ratio = window.devicePixelRatio || 1;
+      const rect = chart.getBoundingClientRect();
+      const width = Math.max(600, Math.floor(rect.width * ratio));
+      const height = Math.max(360, Math.floor(rect.height * ratio));
+      if (chart.width !== width || chart.height !== height) {
+        chart.width = width;
+        chart.height = height;
+      }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
+
     function updateChart() {
-      const candles = state.candles;
+      resizeChart();
+      const visibleCount = Math.max(30, Math.min(160, Number($("visibleCandles").value || 80)));
+      const candles = state.candles.slice(-visibleCount);
       const width = chart.width;
       const height = chart.height;
-      const pad = { top: 24, right: 54, bottom: 34, left: 44 };
+      const pad = { top: 26, right: 76, bottom: 42, left: 52 };
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, width, height);
@@ -738,22 +879,25 @@
       const range = Math.max(max - min, 0.0001);
       const plotW = width - pad.left - pad.right;
       const plotH = height - pad.top - pad.bottom;
-      const candleW = Math.max(3, Math.min(12, plotW / candles.length * 0.62));
+      const candleW = Math.max(7, Math.min(22, plotW / candles.length * 0.68));
       const xStep = plotW / Math.max(1, candles.length - 1);
       const y = (price) => pad.top + (max - price) / range * plotH;
 
       candles.forEach((c, i) => {
         const x = pad.left + i * xStep;
         const up = c.close >= c.open;
-        ctx.strokeStyle = up ? "#11845b" : "#bd3030";
-        ctx.fillStyle = up ? "#11845b" : "#bd3030";
+        const color = up ? "#11845b" : "#bd3030";
+        ctx.strokeStyle = color;
+        ctx.fillStyle = up ? "#dff4eb" : "#f8dddd";
+        ctx.lineWidth = Math.max(1, Math.floor((window.devicePixelRatio || 1) * 1.2));
         ctx.beginPath();
         ctx.moveTo(x, y(c.high));
         ctx.lineTo(x, y(c.low));
         ctx.stroke();
         const bodyTop = y(Math.max(c.open, c.close));
-        const bodyH = Math.max(2, Math.abs(y(c.open) - y(c.close)));
+        const bodyH = Math.max(4, Math.abs(y(c.open) - y(c.close)));
         ctx.fillRect(x - candleW / 2, bodyTop, candleW, bodyH);
+        ctx.strokeRect(x - candleW / 2, bodyTop, candleW, bodyH);
       });
 
       ctx.fillStyle = "#627083";
@@ -761,7 +905,7 @@
       ctx.fillText(formatPrice(max), width - pad.right + 8, pad.top + 4);
       ctx.fillText(formatPrice(min), width - pad.right + 8, height - pad.bottom);
 
-      const last = candles[candles.length - 1];
+      const last = state.candles[state.candles.length - 1];
       $("lastClose").textContent = formatPrice(last.close);
       $("rangeStat").textContent = `${formatPrice(min)} - ${formatPrice(max)}`;
     }
@@ -782,7 +926,7 @@
     async function loadMarketData() {
       setBusy(true);
       try {
-        const payload = payloadBase(false);
+        const payload = { ...payloadBase(false), refresh: true };
         const data = await postJson("/market-data", payload);
         state.candles = data.candles;
         $("chartSubtitle").textContent = `Loaded from ${data.provider}`;
@@ -795,19 +939,38 @@
       }
     }
 
-    async function runAnalyze() {
-      if (!state.candles.length) generateDemoCandles();
+    async function refreshAndAnalyze() {
+      if (state.isRefreshing) return;
+      state.isRefreshing = true;
       setBusy(true);
       try {
+        if (state.mode === "live") {
+          const data = await postJson("/market-data", { ...payloadBase(false), refresh: true });
+          state.candles = data.candles;
+          $("chartSubtitle").textContent = `Live candles from ${data.provider}`;
+          updateChart();
+        } else if (!state.candles.length) {
+          generateDemoCandles();
+        }
         const result = await postJson("/analyze", payloadBase(true));
         state.lastResult = result;
         renderAnalysis(result);
-        setStatus(`Analysis complete: ${result.decision} at ${Math.round(result.confidence * 100)}% confidence.`);
+        setStatus(`Suggestion: ${result.decision} at ${Math.round(result.confidence * 100)}% confidence for ${selectedSymbol()}.`);
       } catch (error) {
-        setStatus(`Analysis failed: ${error.message}`);
+        if (state.mode === "live" && !state.candles.length) {
+          generateDemoCandles();
+          setStatus(`Live refresh failed: ${error.message}. Demo candles loaded as fallback.`);
+        } else {
+          setStatus(`Analysis failed: ${error.message}`);
+        }
       } finally {
+        state.isRefreshing = false;
         setBusy(false);
       }
+    }
+
+    async function runAnalyze() {
+      await refreshAndAnalyze();
     }
 
     async function runBacktest() {
@@ -823,6 +986,33 @@
         setStatus(`Backtest failed: ${error.message}`);
       } finally {
         setBusy(false);
+      }
+    }
+
+    function startAutoCheck() {
+      stopAutoCheck();
+      const seconds = Math.max(15, Number($("refreshSeconds").value || 30));
+      state.autoTimer = window.setInterval(refreshAndAnalyze, seconds * 1000);
+      setStatus(`Auto check enabled. Refreshing every ${seconds} seconds.`);
+      refreshAndAnalyze();
+    }
+
+    function stopAutoCheck() {
+      if (state.autoTimer) {
+        window.clearInterval(state.autoTimer);
+        state.autoTimer = null;
+      }
+    }
+
+    function updateAutoCheck() {
+      if ($("autoCheck").checked) {
+        state.mode = "live";
+        $("liveMode").classList.add("active");
+        $("demoMode").classList.remove("active");
+        startAutoCheck();
+      } else {
+        stopAutoCheck();
+        setStatus("Auto check disabled.");
       }
     }
 
@@ -880,6 +1070,8 @@
 
     $("demoMode").addEventListener("click", () => {
       state.mode = "demo";
+      stopAutoCheck();
+      $("autoCheck").checked = false;
       $("demoMode").classList.add("active");
       $("liveMode").classList.remove("active");
       $("loadBtn").textContent = "Load Demo Candles";
@@ -891,18 +1083,46 @@
       $("liveMode").classList.add("active");
       $("demoMode").classList.remove("active");
       $("loadBtn").textContent = "Load Live Candles";
-      setStatus("Live mode selected. Load market data to fetch provider-backed candles.");
+      setStatus("Live mode selected. Load market data or run analysis to fetch provider-backed candles.");
+    });
+
+    $("symbolPreset").addEventListener("change", () => {
+      const value = $("symbolPreset").value;
+      if (value !== "CUSTOM") {
+        $("symbol").value = value;
+      }
+      if (state.mode === "live") {
+        refreshAndAnalyze();
+      } else {
+        generateDemoCandles();
+      }
+    });
+
+    $("symbol").addEventListener("input", () => {
+      $("symbolPreset").value = "CUSTOM";
     });
 
     $("generateBtn").addEventListener("click", generateDemoCandles);
     $("loadBtn").addEventListener("click", () => state.mode === "live" ? loadMarketData() : generateDemoCandles());
     $("analyzeBtn").addEventListener("click", runAnalyze);
     $("backtestBtn").addEventListener("click", runBacktest);
-    ["symbol", "timeframe", "lookback"].forEach((id) => $(id).addEventListener("change", generateDemoCandles));
+    $("autoCheck").addEventListener("change", updateAutoCheck);
+    $("refreshSeconds").addEventListener("change", () => {
+      if ($("autoCheck").checked) startAutoCheck();
+    });
+    ["symbol", "timeframe", "lookback"].forEach((id) => $(id).addEventListener("change", () => {
+      if (state.mode === "live") {
+        refreshAndAnalyze();
+      } else {
+        generateDemoCandles();
+      }
+    }));
+    $("visibleCandles").addEventListener("change", updateChart);
+    window.addEventListener("resize", updateChart);
 
-    generateDemoCandles();
     renderScores({});
     renderRisk({});
+    refreshAndAnalyze();
   </script>
 </body>
 </html>

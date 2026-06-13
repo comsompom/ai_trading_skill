@@ -104,8 +104,10 @@ http://localhost:5050/
 You should see:
 
 - Market setup controls for symbol, timeframe, candle count, provider, and risk profile.
-- A candlestick chart with generated demo candles.
+- A symbol preset dropdown plus a custom symbol field.
+- A candlestick chart with OHLC bodies and wicks.
 - Buttons for `Generate Demo Candles`, `Load Market Data`, `Run Skill Analysis`, and `Run Backtest`.
+- An `Auto Check Market` switch that refreshes live candles and runs the skill repeatedly.
 - Decision, score breakdown, risk context, and activity panels.
 
 Then open a second terminal, activate the venv, and call health:
@@ -348,4 +350,4 @@ curl http://localhost:5050/strategy/spec
 curl http://localhost:5050/skill/spec
 ```
 
-In the browser, click `Run Skill Analysis`, then `Run Backtest`. For terminal-only proof, run the offline `/analyze` smoke test from section 8 and the offline `/backtest` smoke test from section 9.
+In the browser, choose a symbol, click `Load Market Data`, then `Run Skill Analysis`. Turn on `Auto Check Market` to let the app refresh live candles and update the suggestion automatically. For terminal-only proof, run the offline `/analyze` smoke test from section 8 and the offline `/backtest` smoke test from section 9.

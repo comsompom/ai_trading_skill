@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import requests
 from flask import Blueprint, jsonify, render_template, request
 
 from agent.skill_runner import analyze_payload
 from backtest.engine import run_backtest
 from bots.discord_bot import send_discord
 from bots.telegram_bot import send_telegram
+from data.cache import cache
 from data.providers import get_provider
 from skill.signal_schema import AnalyzeRequest
 from skill.spec import skill_spec
@@ -46,6 +48,8 @@ def analyze():
         result = analyze_payload(payload)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+    except requests.RequestException as exc:
+        return jsonify({"error": f"market data provider error: {exc}"}), 502
     return jsonify(result)
 
 
@@ -56,6 +60,13 @@ def market_data():
         analyze_request = AnalyzeRequest.from_payload(payload)
         candles = analyze_request.market_data
         if not candles:
+            if payload.get("refresh"):
+                cache.delete_prefix(
+                    f"{analyze_request.provider}:{analyze_request.symbol}:{analyze_request.timeframe}:{analyze_request.lookback}"
+                )
+                if analyze_request.provider in {"cmc", "coinmarketcap", "cmc_agent_hub"}:
+                    cache.delete_prefix(f"coingecko:")
+                    cache.delete_prefix(f"binance:{analyze_request.symbol}:{analyze_request.timeframe}:{analyze_request.lookback}")
             provider = get_provider(analyze_request.provider)
             candles = provider.get_candles(
                 symbol=analyze_request.symbol,
@@ -64,6 +75,8 @@ def market_data():
             )
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+    except requests.RequestException as exc:
+        return jsonify({"error": f"market data provider error: {exc}"}), 502
     return jsonify(
         {
             "symbol": analyze_request.symbol,
@@ -81,6 +94,8 @@ def backtest():
         result = run_backtest(payload)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+    except requests.RequestException as exc:
+        return jsonify({"error": f"market data provider error: {exc}"}), 502
     return jsonify(result)
 
 

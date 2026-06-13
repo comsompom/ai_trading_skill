@@ -25,6 +25,10 @@ class MemoryCache:
     def set(self, key: str, value: Any, ttl_seconds: int) -> None:
         self._items[key] = CacheItem(value=value, expires_at=time.time() + ttl_seconds)
 
+    def delete_prefix(self, prefix: str) -> None:
+        for key in list(self._items):
+            if key.startswith(prefix):
+                self._items.pop(key, None)
+
 
 cache = MemoryCache()
-

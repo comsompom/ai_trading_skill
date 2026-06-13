@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import requests
+
 from app.flask_app import create_app
 
 
@@ -13,6 +15,7 @@ def test_index_route_lists_endpoints():
     assert "AI Trading Skill" in body
     assert "Run Skill Analysis" in body
     assert "priceChart" in body
+    assert "Binance explicit" not in body
 
 
 def test_favicon_route_returns_no_content():
@@ -76,3 +79,21 @@ def test_market_data_route_returns_inline_candles():
     assert response.status_code == 200
     assert payload["symbol"] == "BTCUSDT"
     assert len(payload["candles"]) == 80
+
+
+def test_market_data_route_returns_provider_error(monkeypatch):
+    class FailingProvider:
+        def get_candles(self, symbol: str, timeframe: str, limit: int):
+            raise requests.ConnectionError("provider unavailable")
+
+    monkeypatch.setattr("app.routes.get_provider", lambda name: FailingProvider())
+
+    app = create_app()
+    client = app.test_client()
+    response = client.post(
+        "/market-data",
+        json={"symbol": "BTCUSDT", "timeframe": "1h", "lookback": 80, "provider": "cmc", "market_data": []},
+    )
+    payload = response.get_json()
+    assert response.status_code == 502
+    assert "market data provider error" in payload["error"]
