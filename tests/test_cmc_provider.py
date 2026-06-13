@@ -106,7 +106,7 @@ def test_coingecko_provider_aggregates_market_chart_prices(monkeypatch):
         captured["timeout"] = timeout
         return FakeResponse()
 
-    monkeypatch.delenv("COINGECKO_API_KEY", raising=False)
+    monkeypatch.setenv("COINGECKO_API_KEY", "")
     monkeypatch.setattr("data.providers.coingecko.requests.get", fake_get)
 
     candles = CoinGeckoProvider().get_candles("BTCUSDT", "1h", 2)

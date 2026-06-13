@@ -1,111 +1,106 @@
-# How to Install and Run This Project
+# Install, Run, and Prove the Project Works
 
-This project is a Python Flask API for a deterministic crypto strategy skill. It is not a live trading bot and does not place trades.
+This project is a Python Flask API for a deterministic crypto strategy Skill. It analyzes candles, returns BUY/SELL/HOLD decisions, can run a backtest, and exposes optional FastMCP tools. It is not a live trading bot and does not place orders.
 
-## 1. Prerequisites
-
-Install Python 3.11 or newer.
-
-Check your Python version:
-
-```bash
-python3 --version
-```
-
-If `python3` is not available, try:
-
-```bash
-python --version
-```
-
-## 2. Open the Project Folder
-
-From a terminal, go to the project root:
+## 1. Open the Project
 
 ```bash
 cd /Users/olegbourdo/Development/ai_trading_skill
 ```
 
-## 3. Create a Virtual Environment
+## 2. Create and Activate Python
 
-Create a local virtual environment:
+Use Python 3.11 or newer:
 
 ```bash
+python3 --version
 python3 -m venv .venv
-```
-
-If your system uses `python` instead of `python3`, run:
-
-```bash
-python -m venv .venv
-```
-
-## 4. Activate the Virtual Environment
-
-On macOS or Linux:
-
-```bash
 source .venv/bin/activate
 ```
 
-On Windows PowerShell:
+If your system uses `python` instead of `python3`, use:
 
-```powershell
-.\.venv\Scripts\Activate.ps1
+```bash
+python --version
+python -m venv .venv
+source .venv/bin/activate
 ```
 
-After activation, your terminal prompt should usually show `(.venv)`.
+After activation, your prompt should usually show `(.venv)`.
 
-The remaining commands assume the virtual environment is active. If you skip activation, replace `python` with `python3`.
-
-## 5. Upgrade Pip
+## 3. Install Dependencies
 
 ```bash
 python -m pip install --upgrade pip
-```
-
-## 6. Install the Project
-
-Install the project with development dependencies:
-
-```bash
 pip install -e ".[dev]"
 ```
 
-This installs the Flask API, request dependencies, and `pytest`.
+This installs Flask, requests, the local package, and pytest.
 
-## 7. Run the Tests
+## 4. Create Local Environment
 
-Run the test suite:
+Create `.env` from the tracked example if it does not already exist:
+
+```bash
+cp .env.example .env
+```
+
+For a no-key local demo, these values are enough:
+
+```env
+CMC_API_KEY=
+CMC_FALLBACK_PROVIDER=coingecko
+COINGECKO_API_KEY=
+BNB_RPC_URL=
+ETHERSCAN_API_KEY=
+```
+
+Notes:
+
+- `CMC_API_KEY` can stay empty for local testing.
+- `CMC_FALLBACK_PROVIDER=coingecko` avoids Binance.
+- `COINGECKO_API_KEY` can stay empty unless you need higher limits.
+- `BNB_RPC_URL` and `ETHERSCAN_API_KEY` are not used by the current strategy flow, so they can stay empty.
+
+## 5. Run Automated Tests
 
 ```bash
 python -m pytest
 ```
 
-The tests should pass before you run or modify the API.
-
-## 8. Start the API Server
-
-Run:
-
-```bash
-python -m app.flask_app
-```
-
-The server starts on:
+Expected result:
 
 ```text
-http://localhost:5000
+23 passed
 ```
 
-Keep this terminal window open while using the API.
+This proves the strategy logic, provider adapters, Flask routes, and specs work in a deterministic test run.
 
-## 9. Check That the API Is Running
+## 6. Start the Flask API
 
-Open a second terminal window and run:
+On macOS, port `5000` is often used by Control Center / AirPlay Receiver. Use `5050` for the demo:
 
 ```bash
-curl http://localhost:5000/health
+PORT=5050 python -m app.flask_app
+```
+
+Expected startup:
+
+```text
+Running on http://127.0.0.1:5050
+Running on http://<your-local-ip>:5050
+```
+
+Keep this terminal open.
+
+## 7. Check the API
+
+Open a second terminal, activate the venv, and call health:
+
+```bash
+cd /Users/olegbourdo/Development/ai_trading_skill
+source .venv/bin/activate
+curl http://localhost:5050/health
 ```
 
 Expected response:
@@ -117,54 +112,135 @@ Expected response:
 }
 ```
 
-Check the strategy specification:
+Check the strategy and Skill metadata:
 
 ```bash
-curl http://localhost:5000/strategy/spec
+curl http://localhost:5050/strategy/spec
+curl http://localhost:5050/skill/spec
 ```
 
-Check the Skill specification used by FastMCP and agent discovery:
+These should return JSON documents describing the strategy, indicators, interfaces, and input/output schema.
+
+## 8. Prove Analyze Works Without Any API Key
+
+Run this offline smoke test. It generates normalized candles locally and posts them to `/analyze`, so it does not need CoinMarketCap, CoinGecko, Binance, BNB RPC, or Etherscan.
 
 ```bash
-curl http://localhost:5000/skill/spec
+python - <<'PY'
+import json
+import time
+import requests
+
+now = int(time.time()) // 3600 * 3600
+candles = []
+price = 100.0
+
+for i in range(120):
+    price += 0.15
+    candles.append({
+        "symbol": "BTCUSDT",
+        "timeframe": "1h",
+        "timestamp": now - (119 - i) * 3600,
+        "open": price,
+        "high": price + 1.2,
+        "low": price - 0.8,
+        "close": price + 0.4,
+        "volume": 1000 + i,
+    })
+
+payload = {
+    "symbol": "BTCUSDT",
+    "timeframe": "1h",
+    "lookback": 120,
+    "risk_profile": "balanced",
+    "market_data": candles,
+}
+
+response = requests.post("http://localhost:5050/analyze", json=payload, timeout=10)
+print(json.dumps(response.json(), indent=2))
+response.raise_for_status()
+PY
 ```
 
-## 10. Analyze a Symbol
+Expected signs that it works:
 
-Use the default CMC path with CoinGecko as the no-key fallback:
+- The JSON has `symbol`, `timeframe`, `decision`, `confidence`, and `probability_of_success`.
+- `decision` is one of `BUY`, `SELL`, or `HOLD`.
+- `risk_assumptions` contains deterministic stop/target levels.
+- `indicator_values` contains the implemented indicator outputs.
+
+## 9. Prove Backtest Works Without Any API Key
+
+Run this offline backtest smoke test:
 
 ```bash
-curl -X POST http://localhost:5000/analyze \
+python - <<'PY'
+import json
+import time
+import requests
+
+now = int(time.time()) // 3600 * 3600
+candles = []
+price = 100.0
+
+for i in range(140):
+    drift = 0.2 if i < 80 else -0.1
+    price += drift
+    candles.append({
+        "symbol": "BTCUSDT",
+        "timeframe": "1h",
+        "timestamp": now - (139 - i) * 3600,
+        "open": price,
+        "high": price + 1.5,
+        "low": price - 1.0,
+        "close": price + 0.3,
+        "volume": 1500 + i,
+    })
+
+payload = {
+    "symbol": "BTCUSDT",
+    "timeframe": "1h",
+    "lookback": 140,
+    "risk_profile": "balanced",
+    "market_data": candles,
+}
+
+response = requests.post("http://localhost:5050/backtest", json=payload, timeout=10)
+result = response.json()
+summary = {
+    "number_of_trades": result.get("number_of_trades"),
+    "candles": result.get("input_data_range", {}).get("candles"),
+    "signal_history_count": len(result.get("signal_history", [])),
+    "max_drawdown": result.get("max_drawdown"),
+    "total_return": result.get("total_return"),
+}
+print(json.dumps(summary, indent=2))
+response.raise_for_status()
+PY
+```
+
+Expected signs that it works:
+
+- The JSON includes `number_of_trades`, `candles`, and `signal_history_count`.
+- `candles` should match the generated candle count.
+- `signal_history_count` should be greater than `0`.
+- No exchange account, wallet, API key, or live trading permission is needed.
+
+## 10. Optional Live Market Data Demo
+
+Use this only when your machine has internet access. With `CMC_API_KEY` empty and `CMC_FALLBACK_PROVIDER=coingecko`, the app will use CoinGecko as the no-key fallback.
+
+```bash
+curl -X POST http://localhost:5050/analyze \
   -H "Content-Type: application/json" \
-  -d '{"symbol":"BTCUSDT","timeframe":"1h","lookback":300,"provider":"cmc","risk_profile":"balanced","market_data":[]}'
+  -d '{"symbol":"BTCUSDT","timeframe":"1h","lookback":80,"provider":"cmc","risk_profile":"balanced","market_data":[]}'
 ```
 
-Notes:
+If CoinGecko rate limits or blocks the request, use the offline smoke test above. The offline test is the best demo path when you want a reliable proof that the project itself works.
 
-- `lookback` must be at least `60`.
-- If `market_data` is empty, the app fetches provider-backed candle data.
-- Without `CMC_API_KEY`, set `CMC_FALLBACK_PROVIDER=coingecko` to avoid Binance.
+## 11. Optional Notification Demo
 
-## 11. Run a Backtest
-
-Run:
-
-```bash
-curl -X POST http://localhost:5000/backtest \
-  -H "Content-Type: application/json" \
-  -d '{"symbol":"BTCUSDT","timeframe":"1h","lookback":300,"provider":"cmc","risk_profile":"balanced","market_data":[]}'
-```
-
-Notes:
-
-- Backtests require at least `80` candles.
-- The backtest is deterministic.
-- Entries and exits are simulated at the next candle close.
-- Fees and slippage are not included yet.
-
-## 12. Optional Notification Setup
-
-Notifications are optional. The API can test Telegram and Discord notification delivery if environment variables are configured before starting the server.
+Notifications are optional. Configure only the channels you want to test.
 
 Telegram:
 
@@ -179,25 +255,19 @@ Discord:
 export DISCORD_WEBHOOK_URL="your-discord-webhook-url"
 ```
 
-Then restart the API server:
+Restart the Flask API after setting these values, then run:
 
 ```bash
-python -m app.flask_app
-```
-
-Test notifications:
-
-```bash
-curl -X POST http://localhost:5000/notify/test \
+curl -X POST http://localhost:5050/notify/test \
   -H "Content-Type: application/json" \
   -d '{"message":"AI Trading Skill notification test","channels":["telegram","discord"]}'
 ```
 
-If variables are not configured, the endpoint returns `sent: false` with the missing configuration reason.
+If variables are missing, the endpoint returns `sent: false` with the reason.
 
-## 13. Optional FastMCP Server
+## 12. Optional FastMCP Server
 
-Install the optional MCP dependency:
+Install the MCP extra:
 
 ```bash
 pip install -e ".[mcp]"
@@ -206,10 +276,10 @@ pip install -e ".[mcp]"
 Run the FastMCP server:
 
 ```bash
-python3 -m agent.mcp_server
+python -m agent.mcp_server
 ```
 
-It exposes:
+It exposes these tools:
 
 - `get_skill_spec`
 - `get_strategy_spec`
@@ -228,20 +298,38 @@ Prompt:
 
 - `trading_decision_request`
 
-## 14. Stop the API Server
+## 13. Stop the Server
 
-In the terminal running the server, press:
+In the terminal running Flask, press:
 
 ```text
 Ctrl+C
 ```
 
-## 15. Run Again Later
-
-Each time you return to the project:
+## 14. Start Again Later
 
 ```bash
 cd /Users/olegbourdo/Development/ai_trading_skill
 source .venv/bin/activate
-python -m app.flask_app
+PORT=5050 python -m app.flask_app
 ```
+
+## 15. Quick Demo Checklist
+
+Use this checklist when showing the working project:
+
+```bash
+source .venv/bin/activate
+python -m pytest
+PORT=5050 python -m app.flask_app
+```
+
+In a second terminal:
+
+```bash
+curl http://localhost:5050/health
+curl http://localhost:5050/strategy/spec
+curl http://localhost:5050/skill/spec
+```
+
+Then run the offline `/analyze` smoke test from section 8 and the offline `/backtest` smoke test from section 9.
