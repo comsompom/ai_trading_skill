@@ -139,6 +139,7 @@ Etherscan getting started docs: https://docs.etherscan.io/getting-started
 Variables:
 
 - `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHANNEL_ID`
 - `TELEGRAM_CHAT_ID`
 
 To get a Telegram bot token:
@@ -146,9 +147,10 @@ To get a Telegram bot token:
 1. Open Telegram and chat with `@BotFather`.
 2. Run `/newbot`.
 3. Follow the prompts and copy the bot token into `TELEGRAM_BOT_TOKEN`.
-4. Send a message to the bot from the target Telegram account or group.
-5. Use Telegram Bot API `getUpdates` or another trusted chat-id helper to find the target chat ID.
-6. Store that ID in `TELEGRAM_CHAT_ID`.
+4. Add the bot to the target channel or group and grant posting permission.
+5. Use Telegram Bot API `getUpdates` or another trusted chat-id helper to find the target channel ID.
+6. Store that ID in `TELEGRAM_CHANNEL_ID`. Private channel and supergroup IDs usually start with `-100`.
+7. `TELEGRAM_CHAT_ID` is still supported as a fallback for older configs or direct chat notifications.
 
 Telegram bot docs: https://core.telegram.org/bots/features#botfather
 

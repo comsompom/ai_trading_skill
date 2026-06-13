@@ -263,7 +263,7 @@ Telegram:
 
 ```bash
 export TELEGRAM_BOT_TOKEN="your-telegram-bot-token"
-export TELEGRAM_CHAT_ID="your-telegram-chat-id"
+export TELEGRAM_CHANNEL_ID="your-telegram-channel-id"
 ```
 
 Discord:

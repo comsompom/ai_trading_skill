@@ -5,6 +5,7 @@ description = "Track 2 CMC-style crypto strategy Skill with deterministic backte
 requires-python = ">=3.11"
 dependencies = [
   "Flask>=3.0,<4.0",
+  "python-telegram-bot>=22.0,<23.0",
   "requests>=2.31,<3.0",
 ]
 
