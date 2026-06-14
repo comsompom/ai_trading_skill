@@ -6,6 +6,10 @@ Build a Track 2 CMC-powered Strategy Skill that analyzes crypto market data, app
 
 This is **not** a live trading agent. It does not execute trades, sign transactions, or register for Track 1 on-chain competition. The BNB AI Agent SDK may be used only as an optional bonus-prize enhancement, not as a dependency for the core Track 2 product.
 
+First implemented indicator-based Strategy Skill demo video:
+
+- https://www.youtube.com/watch?v=TA6gRVvitJs
+
 ## Architecture
 
 ```text

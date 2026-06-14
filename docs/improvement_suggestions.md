@@ -2,6 +2,10 @@
 
 This document captures suggested ways to use the listed hackathon and ecosystem resources to improve the AI Trading Skill project.
 
+First implemented indicator-based Strategy Skill demo video:
+
+- https://www.youtube.com/watch?v=TA6gRVvitJs
+
 ## Current Project Constraint
 
 The project is currently positioned as a Track 2 CMC-powered Strategy Skill:

@@ -2,6 +2,10 @@
 
 This project is a Python Flask API for a deterministic crypto strategy Skill. It analyzes candles, returns BUY/SELL/HOLD decisions, can run a backtest, and exposes optional FastMCP tools. It is not a live trading bot and does not place orders.
 
+First implemented indicator-based Strategy Skill demo video:
+
+- https://www.youtube.com/watch?v=TA6gRVvitJs
+
 ## 1. Open the Project
 
 ```bash

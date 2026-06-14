@@ -2,6 +2,10 @@
 
 This document describes only the indicators and strategy logic currently implemented in the app. It does not list MT4 files that are present in the repository but not yet ported into the Python decision engine.
 
+Demo video for the first implemented indicator-based Strategy Skill:
+
+- https://www.youtube.com/watch?v=TA6gRVvitJs
+
 ## Implemented Indicators And Features
 
 | Implemented feature | Source / file | Feature group | Current role in decision |

@@ -6,6 +6,10 @@ Track 2 CMC-powered Strategy Skill for a deterministic, backtestable crypto stra
 
 The core Track 2 product does not depend on the BNB AI Agent SDK. BNB SDK integration is reserved for optional bonus-prize enhancement, such as agent identity, discovery, or job-service wrapping around the existing strategy.
 
+First implemented indicator-based Strategy Skill demo video:
+
+- https://www.youtube.com/watch?v=TA6gRVvitJs
+
 ## Documentation
 
 - [Project structure and workflow](docs/project_structure.md)

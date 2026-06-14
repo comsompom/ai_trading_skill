@@ -4,6 +4,10 @@ This Track 2 Skill is a CMC-powered deterministic, backtestable crypto strategy 
 
 CoinMarketCap is the primary provider when candles are not supplied in the request. Binance remains a local fallback for no-key development. BNB AI Agent SDK usage is optional bonus/demo work and is not required by the core strategy.
 
+Demo video for this first implemented indicator-based Strategy Skill:
+
+- https://www.youtube.com/watch?v=TA6gRVvitJs
+
 ## Inputs
 
 - Normalized OHLCV candles with `symbol`, `timeframe`, `timestamp`, `open`, `high`, `low`, `close`, and `volume`.

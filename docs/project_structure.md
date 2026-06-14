@@ -4,6 +4,10 @@ This project is a CMC-powered deterministic crypto strategy Skill. It analyzes n
 
 The core Track 2 product uses CoinMarketCap as the primary provider when `market_data` is omitted. Binance remains a local no-key fallback and direct provider option. BNB AI Agent SDK integration is optional bonus/demo work, not a core dependency.
 
+First implemented indicator-based Strategy Skill demo video:
+
+- https://www.youtube.com/watch?v=TA6gRVvitJs
+
 ## Top-Level Layout
 
 ```text
