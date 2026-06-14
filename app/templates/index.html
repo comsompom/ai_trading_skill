@@ -344,6 +344,42 @@
       gap: 18px;
     }
 
+    .workspace-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 10px;
+    }
+
+    .workspace-tabs button {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      min-height: 34px;
+      padding: 7px 11px;
+      background: #fff;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .workspace-tabs button.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .tab-view {
+      display: none;
+      gap: 18px;
+    }
+
+    .tab-view.active {
+      display: grid;
+    }
+
     .chart-panel {
       min-height: 520px;
       display: grid;
@@ -514,6 +550,114 @@
       padding: 16px;
     }
 
+    .recommendation-grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+      gap: 18px;
+    }
+
+    .recommendation-panel {
+      padding: 16px;
+    }
+
+    .recommendation-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .indicator-row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcfd;
+      display: grid;
+      gap: 8px;
+    }
+
+    .indicator-row header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .indicator-row h3 {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .indicator-row p {
+      margin: 0;
+      color: #344255;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .indicator-tag {
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: var(--soft);
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+      font-weight: 750;
+    }
+
+    .indicator-tag.use {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .indicator-tag.confirm {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .indicator-tag.avoid {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .compact-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(70px, 1fr));
+      gap: 8px;
+    }
+
+    .compact-metrics div {
+      border-top: 1px solid var(--line);
+      padding-top: 7px;
+    }
+
+    .compact-metrics span,
+    .profile-list span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+
+    .compact-metrics strong,
+    .profile-list strong {
+      font-size: 12px;
+    }
+
+    .profile-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .profile-list div {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+    }
+
     .event-log {
       margin-top: 12px;
       max-height: 210px;
@@ -544,6 +688,10 @@
       }
 
       .results-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .recommendation-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -690,55 +838,83 @@
           <button class="btn" id="loadBtn" type="button">Load Market Data</button>
           <button class="btn primary" id="analyzeBtn" type="button">Run Skill Analysis</button>
           <button class="btn" id="backtestBtn" type="button">Run Backtest</button>
+          <button class="btn" id="recommendBtn" type="button">Recommend Indicators</button>
         </div>
 
         <div class="status-line" id="statusLine">Ready. Live mode will load provider-backed market data.</div>
       </aside>
 
       <section class="workspace">
-        <section class="panel chart-panel">
-          <div class="chart-header">
-            <div class="chart-title">
-              <h2 id="chartTitle">BTCUSDT / 4h</h2>
-              <p id="chartSubtitle">Generated local OHLCV candles</p>
+        <div class="workspace-tabs" role="tablist" aria-label="Dashboard tabs">
+          <button type="button" id="analysisTab" class="active" role="tab" aria-selected="true">Strategy Analysis</button>
+          <button type="button" id="recommendationsTab" role="tab" aria-selected="false">Indicator Fit</button>
+        </div>
+
+        <div id="analysisView" class="tab-view active">
+          <section class="panel chart-panel">
+            <div class="chart-header">
+              <div class="chart-title">
+                <h2 id="chartTitle">BTCUSDT / 4h</h2>
+                <p id="chartSubtitle">Generated local OHLCV candles</p>
+              </div>
+              <div class="market-stats">
+                <div class="stat"><span>Last Close</span><strong id="lastClose">-</strong></div>
+                <div class="stat"><span>Range</span><strong id="rangeStat">-</strong></div>
+                <div class="stat"><span>Candles</span><strong id="candleCount">-</strong></div>
+              </div>
             </div>
-            <div class="market-stats">
-              <div class="stat"><span>Last Close</span><strong id="lastClose">-</strong></div>
-              <div class="stat"><span>Range</span><strong id="rangeStat">-</strong></div>
-              <div class="stat"><span>Candles</span><strong id="candleCount">-</strong></div>
+            <div class="chart-wrap">
+              <canvas id="priceChart" width="980" height="360" aria-label="Candlestick price chart"></canvas>
             </div>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="priceChart" width="980" height="360" aria-label="Candlestick price chart"></canvas>
-          </div>
-        </section>
+          </section>
 
-        <section class="results-grid">
-          <div class="panel result-panel">
-            <h2 class="panel-title">Decision</h2>
-            <div id="decisionBadge" class="decision">WAITING</div>
-            <div class="metric-row"><span>Confidence</span><strong id="confidenceMetric">-</strong></div>
-            <div class="metric-row"><span>Probability</span><strong id="probabilityMetric">-</strong></div>
-            <div class="metric-row"><span>Model</span><strong id="modelMetric">-</strong></div>
-          </div>
+          <section class="results-grid">
+            <div class="panel result-panel">
+              <h2 class="panel-title">Decision</h2>
+              <div id="decisionBadge" class="decision">WAITING</div>
+              <div class="metric-row"><span>Confidence</span><strong id="confidenceMetric">-</strong></div>
+              <div class="metric-row"><span>Probability</span><strong id="probabilityMetric">-</strong></div>
+              <div class="metric-row"><span>Model</span><strong id="modelMetric">-</strong></div>
+            </div>
 
-          <div class="panel result-panel">
-            <h2 class="panel-title">Score Breakdown</h2>
-            <div class="score-list" id="scoreList"></div>
-            <p class="explanation" id="explanation">Run the skill to see the indicator reasoning and blockers.</p>
-          </div>
+            <div class="panel result-panel">
+              <h2 class="panel-title">Score Breakdown</h2>
+              <div class="score-list" id="scoreList"></div>
+              <p class="explanation" id="explanation">Run the skill to see the indicator reasoning and blockers.</p>
+            </div>
 
-          <div class="panel result-panel">
-            <h2 class="panel-title">Risk Context</h2>
-            <div class="risk-table" id="riskTable"></div>
-          </div>
-        </section>
+            <div class="panel result-panel">
+              <h2 class="panel-title">Risk Context</h2>
+              <div class="risk-table" id="riskTable"></div>
+            </div>
+          </section>
 
-        <section class="panel events-panel">
-          <h2 class="panel-title">Backtest and Activity</h2>
-          <p class="panel-note" id="backtestSummary">Run a backtest to see simulated signal history and trade count. Results are deterministic and non-executing.</p>
-          <div class="event-log" id="eventLog"></div>
-        </section>
+          <section class="panel events-panel">
+            <h2 class="panel-title">Backtest and Activity</h2>
+            <p class="panel-note" id="backtestSummary">Run a backtest to see simulated signal history and trade count. Results are deterministic and non-executing.</p>
+            <div class="event-log" id="eventLog"></div>
+          </section>
+        </div>
+
+        <div id="recommendationsView" class="tab-view">
+          <section class="recommendation-grid">
+            <div class="panel recommendation-panel">
+              <h2 class="panel-title">Indicator Recommendations</h2>
+              <p class="panel-note" id="recommendationSummary">Run the indicator fit skill to check the selected symbol against historical candles.</p>
+              <div class="profile-list" id="marketProfile"></div>
+            </div>
+
+            <div class="panel recommendation-panel">
+              <h2 class="panel-title">Best Fit</h2>
+              <div class="recommendation-list" id="recommendedList"></div>
+            </div>
+          </section>
+
+          <section class="panel recommendation-panel">
+            <h2 class="panel-title">Full Indicator Review</h2>
+            <div class="recommendation-list" id="allIndicatorList"></div>
+          </section>
+        </div>
       </section>
     </main>
   </div>
@@ -748,6 +924,7 @@
       mode: "live",
       candles: [],
       lastResult: null,
+      lastRecommendations: null,
       autoTimer: null,
       isRefreshing: false,
     };
@@ -777,9 +954,20 @@
     }
 
     function setBusy(busy) {
-      ["generateBtn", "loadBtn", "analyzeBtn", "backtestBtn"].forEach((id) => {
+      ["generateBtn", "loadBtn", "analyzeBtn", "backtestBtn", "recommendBtn"].forEach((id) => {
         $(id).disabled = busy;
       });
+    }
+
+    function switchTab(name) {
+      const recommendations = name === "recommendations";
+      $("analysisTab").classList.toggle("active", !recommendations);
+      $("recommendationsTab").classList.toggle("active", recommendations);
+      $("analysisTab").setAttribute("aria-selected", recommendations ? "false" : "true");
+      $("recommendationsTab").setAttribute("aria-selected", recommendations ? "true" : "false");
+      $("analysisView").classList.toggle("active", !recommendations);
+      $("recommendationsView").classList.toggle("active", recommendations);
+      if (!recommendations) updateChart();
     }
 
     function selectedSymbol() {
@@ -1025,6 +1213,29 @@
       }
     }
 
+    async function runRecommendations() {
+      setBusy(true);
+      try {
+        if (state.mode === "live") {
+          const data = await postJson("/market-data", { ...payloadBase(false), refresh: true });
+          state.candles = data.candles;
+          $("chartSubtitle").textContent = `Live candles from ${data.provider}`;
+          updateChart();
+        } else if (!state.candles.length) {
+          generateDemoCandles();
+        }
+        const result = await postJson("/indicator-recommendations", payloadBase(true));
+        state.lastRecommendations = result;
+        renderRecommendations(result);
+        switchTab("recommendations");
+        setStatus(`Indicator fit complete for ${result.symbol}: ${result.recommended_indicators.length} primary recommendations.`);
+      } catch (error) {
+        setStatus(`Indicator recommendation failed: ${error.message}`);
+      } finally {
+        setBusy(false);
+      }
+    }
+
     function startAutoCheck() {
       stopAutoCheck();
       const seconds = Math.max(15, Number($("refreshSeconds").value || 30));
@@ -1104,6 +1315,103 @@
       });
     }
 
+    function renderRecommendations(result) {
+      $("recommendationSummary").textContent = result.summary || "No recommendation summary returned.";
+      renderMarketProfile(result.market_profile || {}, result.analysis_settings || {});
+      renderIndicatorList("recommendedList", [
+        ...(result.recommended_indicators || []),
+        ...(result.confirmation_indicators || []).slice(0, 3),
+      ]);
+      renderIndicatorList("allIndicatorList", result.all_indicators || []);
+    }
+
+    function renderMarketProfile(profile, settings) {
+      const items = [
+        ["Direction", profile.direction],
+        ["Volatility", profile.volatility],
+        ["Recent Return", formatPercent(profile.recent_return)],
+        ["ATR Percent", formatPercent(profile.atr_percent)],
+        ["Candles", settings.candles],
+        ["Forward Bars", settings.forward_bars],
+      ];
+      $("marketProfile").innerHTML = "";
+      items.forEach(([label, value]) => {
+        const row = document.createElement("div");
+        const span = document.createElement("span");
+        const strong = document.createElement("strong");
+        span.textContent = label;
+        strong.textContent = value === undefined || value === null ? "-" : value;
+        row.append(span, strong);
+        $("marketProfile").appendChild(row);
+      });
+    }
+
+    function renderIndicatorList(id, indicators) {
+      const list = $(id);
+      list.innerHTML = "";
+      if (!indicators.length) {
+        const empty = document.createElement("p");
+        empty.className = "explanation";
+        empty.textContent = "No indicators in this group yet.";
+        list.appendChild(empty);
+        return;
+      }
+      indicators.forEach((indicator) => {
+        list.appendChild(indicatorRow(indicator));
+      });
+    }
+
+    function indicatorRow(indicator) {
+      const row = document.createElement("article");
+      row.className = "indicator-row";
+
+      const header = document.createElement("header");
+      const titleWrap = document.createElement("div");
+      const title = document.createElement("h3");
+      const role = document.createElement("p");
+      const tag = document.createElement("span");
+      title.textContent = indicator.name || indicator.key || "Indicator";
+      role.textContent = indicator.role || "-";
+      tag.className = `indicator-tag ${recommendationClass(indicator.recommendation)}`;
+      tag.textContent = recommendationLabel(indicator.recommendation);
+      titleWrap.append(title, role);
+      header.append(titleWrap, tag);
+
+      const metrics = document.createElement("div");
+      metrics.className = "compact-metrics";
+      [
+        ["Score", formatPercent(indicator.suitability_score)],
+        ["Win Rate", formatPercent(indicator.win_rate)],
+        ["Signals", indicator.signal_count],
+        ["Min Strength", indicator.settings ? indicator.settings.minimum_signal_strength : "-"],
+      ].forEach(([label, value]) => {
+        const item = document.createElement("div");
+        const span = document.createElement("span");
+        const strong = document.createElement("strong");
+        span.textContent = label;
+        strong.textContent = value === undefined || value === null ? "-" : value;
+        item.append(span, strong);
+        metrics.appendChild(item);
+      });
+
+      const reason = document.createElement("p");
+      reason.textContent = indicator.reason || "";
+      row.append(header, metrics, reason);
+      return row;
+    }
+
+    function recommendationClass(value) {
+      if (value === "use") return "use";
+      if (value === "use_with_confirmation") return "confirm";
+      return "avoid";
+    }
+
+    function recommendationLabel(value) {
+      if (value === "use") return "Use";
+      if (value === "use_with_confirmation") return "Confirm";
+      return "Avoid";
+    }
+
     $("demoMode").addEventListener("click", () => {
       state.mode = "demo";
       stopAutoCheck();
@@ -1142,6 +1450,9 @@
     $("loadBtn").addEventListener("click", () => state.mode === "live" ? loadMarketData() : generateDemoCandles());
     $("analyzeBtn").addEventListener("click", runAnalyze);
     $("backtestBtn").addEventListener("click", runBacktest);
+    $("recommendBtn").addEventListener("click", runRecommendations);
+    $("analysisTab").addEventListener("click", () => switchTab("analysis"));
+    $("recommendationsTab").addEventListener("click", () => switchTab("recommendations"));
     $("autoCheck").addEventListener("change", updateAutoCheck);
     $("refreshSeconds").addEventListener("change", () => {
       if ($("autoCheck").checked) startAutoCheck();

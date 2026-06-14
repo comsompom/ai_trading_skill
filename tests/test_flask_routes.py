@@ -14,6 +14,8 @@ def test_index_route_lists_endpoints():
     body = response.get_data(as_text=True)
     assert "AI Trading Skill" in body
     assert "Run Skill Analysis" in body
+    assert "Indicator Recommendations" in body
+    assert "recommendBtn" in body
     assert "priceChart" in body
     assert "Binance explicit" not in body
     assert '<option value="4h" selected>4h</option>' in body
@@ -43,6 +45,16 @@ def test_strategy_spec_route():
     response = client.get("/strategy/spec")
     assert response.status_code == 200
     assert response.get_json()["not_live_trading"] is True
+
+
+def test_indicator_recommendations_spec_route():
+    app = create_app()
+    client = app.test_client()
+    response = client.get("/indicator-recommendations/spec")
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["not_live_trading"] is True
+    assert payload["name"] == "Historical Indicator Recommendation Skill"
 
 
 def test_skill_spec_route():
@@ -101,6 +113,39 @@ def test_market_data_route_returns_provider_error(monkeypatch):
     payload = response.get_json()
     assert response.status_code == 502
     assert "market data provider error" in payload["error"]
+
+
+def test_indicator_recommendations_route_returns_inline_report():
+    app = create_app()
+    client = app.test_client()
+    candles = [
+        {
+            "symbol": "BTCUSDT",
+            "timeframe": "4h",
+            "timestamp": 1_700_000_000 + i * 14_400,
+            "open": 100 + i * 0.15,
+            "high": 100.7 + i * 0.15,
+            "low": 99.4 + i * 0.15,
+            "close": 100.2 + i * 0.15 + (0.25 if i % 8 < 4 else -0.2),
+            "volume": 1000 + i,
+        }
+        for i in range(130)
+    ]
+    response = client.post(
+        "/indicator-recommendations",
+        json={
+            "symbol": "BTCUSDT",
+            "timeframe": "4h",
+            "lookback": 130,
+            "provider": "cmc",
+            "market_data": candles,
+        },
+    )
+    payload = response.get_json()
+    assert response.status_code == 200
+    assert payload["symbol"] == "BTCUSDT"
+    assert len(payload["all_indicators"]) == 10
+    assert payload["analysis_settings"]["candles"] == 130
 
 
 def test_analyze_route_sends_telegram_when_requested(monkeypatch):

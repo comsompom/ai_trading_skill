@@ -9,6 +9,7 @@ from bots.discord_bot import send_discord
 from bots.telegram_bot import send_telegram
 from data.cache import cache
 from data.providers import get_provider
+from skill.indicator_recommendation_skill import IndicatorRecommendationSkill, indicator_recommendation_spec
 from skill.signal_schema import AnalyzeRequest
 from skill.spec import skill_spec
 from skill.strategy_skill import strategy_spec
@@ -60,6 +61,11 @@ def health():
 @api.get("/strategy/spec")
 def spec():
     return jsonify(strategy_spec())
+
+
+@api.get("/indicator-recommendations/spec")
+def indicator_recommendations_spec_route():
+    return jsonify(indicator_recommendation_spec())
 
 
 @api.get("/skill/spec")
@@ -127,6 +133,18 @@ def backtest():
     payload = request.get_json(silent=True) or {}
     try:
         result = run_backtest(payload)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except requests.RequestException as exc:
+        return jsonify({"error": f"market data provider error: {exc}"}), 502
+    return jsonify(result)
+
+
+@api.post("/indicator-recommendations")
+def indicator_recommendations():
+    payload = request.get_json(silent=True) or {}
+    try:
+        result = IndicatorRecommendationSkill().analyze_payload(payload)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     except requests.RequestException as exc:
