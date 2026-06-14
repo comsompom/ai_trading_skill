@@ -8,6 +8,10 @@ First implemented indicator-based Strategy Skill demo video:
 
 - https://www.youtube.com/watch?v=TA6gRVvitJs
 
+Indicator Recommendation Skill demo video:
+
+- https://youtu.be/j8ii27bbz4A
+
 ## Top-Level Layout
 
 ```text

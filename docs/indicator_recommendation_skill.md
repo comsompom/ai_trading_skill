@@ -6,6 +6,10 @@ The first implemented indicator-based Strategy Skill that this recommendation sk
 
 - https://www.youtube.com/watch?v=TA6gRVvitJs
 
+Indicator Recommendation Skill demo video:
+
+- https://youtu.be/j8ii27bbz4A
+
 This skill does not produce a trade order. It answers a different question:
 
 ```text

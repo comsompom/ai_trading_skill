@@ -8,6 +8,10 @@ Demo video for this first implemented indicator-based Strategy Skill:
 
 - https://www.youtube.com/watch?v=TA6gRVvitJs
 
+Demo video for the related Indicator Recommendation Skill:
+
+- https://youtu.be/j8ii27bbz4A
+
 ## Inputs
 
 - Normalized OHLCV candles with `symbol`, `timeframe`, `timestamp`, `open`, `high`, `low`, `close`, and `volume`.

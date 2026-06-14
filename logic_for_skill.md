@@ -6,6 +6,10 @@ Demo video for the first implemented indicator-based Strategy Skill:
 
 - https://www.youtube.com/watch?v=TA6gRVvitJs
 
+Demo video for the Indicator Recommendation Skill:
+
+- https://youtu.be/j8ii27bbz4A
+
 ## Implemented Indicators And Features
 
 | Implemented feature | Source / file | Feature group | Current role in decision |
