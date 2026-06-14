@@ -10,6 +10,7 @@ The core Track 2 product does not depend on the BNB AI Agent SDK. BNB SDK integr
 
 - [Project structure and workflow](docs/project_structure.md)
 - [Strategy specification](docs/strategy_spec.md)
+- [Indicator Recommendation Skill](docs/indicator_recommendation_skill.md)
 
 ## Setup
 
@@ -181,8 +182,10 @@ Endpoints:
 - `GET /health`
 - `GET /skill/spec`
 - `GET /strategy/spec`
+- `GET /indicator-recommendations/spec`
 - `POST /analyze`
 - `POST /backtest`
+- `POST /indicator-recommendations`
 - `POST /notify/test`
 
 ## FastMCP
@@ -222,6 +225,20 @@ curl -X POST http://localhost:5000/analyze \
 ```
 
 If `market_data` is empty and no provider is specified, the app uses `provider=cmc`. Without `CMC_API_KEY`, it falls back to CoinGecko for local development. You can still force Binance directly with `provider=binance`.
+
+## Recommend Indicators For A Symbol
+
+The app includes a separate Indicator Recommendation Skill. It checks the selected symbol/timeframe against historical candles and recommends which implemented indicators are best suited, which should be used only with confirmation, and which should be avoided for now.
+
+Use it from the Flask UI on the `Indicator Fit` tab, or call the API directly:
+
+```bash
+curl -X POST http://localhost:5000/indicator-recommendations \
+  -H 'Content-Type: application/json' \
+  -d '{"symbol":"BTCUSDT","timeframe":"4h","lookback":140,"provider":"coingecko","market_data":[]}'
+```
+
+This endpoint is advisory only. It does not return a trade order; it returns indicator-fit recommendations and suggested normalized signal-strength filters.
 
 ## Optional Notifications
 

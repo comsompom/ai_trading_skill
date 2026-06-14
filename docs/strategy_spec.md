@@ -38,3 +38,27 @@ CoinMarketCap is the primary provider when candles are not supplied in the reque
 ## Probability
 
 The first version uses the heuristic transform from `logic_for_skill.md`. Calibration will replace this after enough backtest samples exist.
+
+## Related Indicator Recommendation Skill
+
+The project also includes a separate Indicator Recommendation Skill in `skill/indicator_recommendation_skill.py`.
+
+This companion skill does not return `BUY`, `SELL`, or `HOLD`. Instead, it checks a user-selected symbol and timeframe against historical candles and recommends which implemented indicators are best suited for that market.
+
+It reuses the same indicator feature calculations as the strategy skill, then scores each indicator independently using:
+
+- historical directional signal count
+- win rate over a configurable forward candle horizon
+- profit factor
+- average normalized signal strength
+- signal coverage
+
+The output groups indicators into:
+
+- `use`
+- `use_with_confirmation`
+- `avoid_for_now`
+
+The Flask UI exposes this workflow on the `Indicator Fit` tab. API callers can use `POST /indicator-recommendations` and inspect `GET /indicator-recommendations/spec`.
+
+Full details are documented in `docs/indicator_recommendation_skill.md`.

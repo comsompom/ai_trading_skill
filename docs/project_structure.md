@@ -15,7 +15,7 @@ ai_trading_skill/
   data/                  Market-data providers and cache helpers
   docs/                  Strategy and project documentation
   indicators/            Native and ported indicator implementations
-  skill/                 Core strategy Skill, schemas, and Skill spec
+  skill/                 Core strategy Skill, recommendation Skill, schemas, and Skill spec
   tests/                 Unit and integration tests
   MT4Indicators/         Original MT4 indicator source references
   MT4EAS/                Original MT4 EA source references
@@ -31,8 +31,10 @@ Flask API:
 GET  /health
 GET  /skill/spec
 GET  /strategy/spec
+GET  /indicator-recommendations/spec
 POST /analyze
 POST /backtest
+POST /indicator-recommendations
 POST /notify/test
 ```
 
@@ -107,6 +109,20 @@ places_orders: false
 signs_transactions: false
 ```
 
+For `/indicator-recommendations`:
+
+```text
+client payload
+  -> skill.signal_schema.AnalyzeRequest
+  -> market_data or data provider candles
+  -> skill.indicator_recommendation_skill.IndicatorRecommendationSkill.analyze
+  -> rolling indicator feature calculation from candle 60 onward
+  -> per-indicator historical fit scoring
+  -> indicator recommendation report
+```
+
+This route does not return a trading decision. It recommends which available indicators fit the selected symbol/timeframe and how strictly the user should filter their normalized signal strengths.
+
 ## Strategy Skill
 
 Main file:
@@ -153,6 +169,44 @@ SELL:
 HOLD:
   evidence is mixed, stale, under threshold, or blocked
 ```
+
+## Indicator Recommendation Skill
+
+Main file:
+
+```text
+skill/indicator_recommendation_skill.py
+```
+
+Important functions:
+
+```text
+IndicatorRecommendationSkill.analyze_payload()
+IndicatorRecommendationSkill.analyze()
+indicator_recommendation_spec()
+```
+
+The recommendation skill is intentionally separate from `StrategySkill`. It reuses `StrategySkill._calculate_features()` to calculate the same indicator signals, then evaluates each indicator independently against historical forward returns.
+
+Recommendation buckets:
+
+```text
+use                    strong enough historical fit to use as a primary input
+use_with_confirmation  usable, but only with other indicator agreement
+avoid_for_now          weak fit or too few signals for this symbol/timeframe
+```
+
+Scoring inputs:
+
+```text
+win rate
+profit factor
+average signal strength
+sample size
+signal coverage
+```
+
+The Flask dashboard exposes this skill on the `Indicator Fit` tab. The tab shares the same symbol, timeframe, provider, and candle-count controls as the main strategy view.
 
 ## Indicator Layer
 
@@ -386,7 +440,9 @@ Main files:
 ```text
 skill/signal_schema.py
 skill/spec.py
+skill/indicator_recommendation_skill.py
 docs/strategy_spec.md
+docs/indicator_recommendation_skill.md
 ```
 
 `skill/signal_schema.py` defines Python dataclasses:
@@ -401,6 +457,8 @@ AnalyzeRequest
 `skill/spec.py` exposes the agent/Skill-facing spec used by Flask and MCP discovery.
 
 `docs/strategy_spec.md` describes the strategy rules and indicator roles in human-readable form.
+
+`docs/indicator_recommendation_skill.md` describes the separate symbol-level indicator-fit workflow.
 
 ## Notifications
 
@@ -428,6 +486,7 @@ test_abcd_hand.py              ABCD formula and snap behavior
 test_additional_mql_ports.py   DeMark, APEX, and HL port integration
 test_env.py                    environment loading
 test_flask_routes.py           Flask API routes
+test_indicator_recommendation_skill.py  indicator fit report shape
 test_skill_spec.py             Skill spec and MCP decision contract
 test_strategy_skill.py         core strategy result shape
 ```
