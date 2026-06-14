@@ -128,7 +128,7 @@
       margin: 0 auto;
       padding: 20px;
       display: grid;
-      grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+      grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
       gap: 18px;
     }
 
@@ -143,7 +143,7 @@
       align-self: start;
       position: sticky;
       top: 82px;
-      padding: 16px;
+      padding: 12px;
     }
 
     .panel-title {
@@ -153,19 +153,19 @@
     }
 
     .panel-note {
-      margin: 0 0 16px;
+      margin: 0 0 10px;
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
+      font-size: 12px;
+      line-height: 1.35;
     }
 
     .field {
-      margin-bottom: 13px;
+      margin-bottom: 9px;
     }
 
     .field label {
       display: block;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       font-weight: 650;
       font-size: 12px;
       color: #364453;
@@ -174,24 +174,31 @@
     .field input,
     .field select {
       width: 100%;
-      min-height: 38px;
+      min-height: 34px;
       border: 1px solid var(--line);
       border-radius: 7px;
-      padding: 8px 10px;
+      padding: 6px 8px;
       color: var(--ink);
       background: #fff;
     }
 
     .symbol-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
+      grid-template-columns: minmax(0, 1.15fr) minmax(88px, 0.85fr);
+      gap: 6px;
     }
 
     .inline-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
+    }
+
+    .setup-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 8px;
+      row-gap: 0;
     }
 
     .toggle-row {
@@ -201,8 +208,8 @@
       gap: 12px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 10px;
-      margin-top: 12px;
+      padding: 8px;
+      margin-top: 4px;
       background: #fbfcfd;
     }
 
@@ -215,10 +222,10 @@
 
     .toggle-row small {
       display: block;
-      margin-top: 2px;
+      margin-top: 1px;
       color: var(--muted);
       font-size: 11px;
-      line-height: 1.35;
+      line-height: 1.25;
     }
 
     .switch {
@@ -269,16 +276,16 @@
       grid-template-columns: 1fr 1fr;
       gap: 6px;
       background: var(--soft);
-      padding: 4px;
+      padding: 3px;
       border-radius: 8px;
       border: 1px solid var(--line);
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     .segmented button {
       border: 0;
       border-radius: 6px;
-      min-height: 34px;
+      min-height: 30px;
       background: transparent;
       color: var(--muted);
       cursor: pointer;
@@ -293,19 +300,21 @@
 
     .actions {
       display: grid;
-      gap: 9px;
-      margin-top: 16px;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
     }
 
     .btn {
       border: 1px solid var(--line);
       border-radius: 7px;
-      min-height: 40px;
-      padding: 9px 12px;
+      min-height: 34px;
+      padding: 7px 9px;
       background: #fff;
       color: var(--ink);
       cursor: pointer;
       font-weight: 700;
+      font-size: 12px;
     }
 
     .btn.primary {
@@ -320,14 +329,14 @@
     }
 
     .status-line {
-      margin-top: 14px;
-      padding: 10px;
+      margin-top: 10px;
+      padding: 8px;
       border-radius: 7px;
       background: var(--soft);
       color: var(--muted);
       font-size: 12px;
-      line-height: 1.45;
-      min-height: 52px;
+      line-height: 1.35;
+      min-height: 42px;
     }
 
     .workspace {
@@ -560,6 +569,12 @@
         min-width: 0;
         grid-template-columns: 1fr;
       }
+
+      .symbol-grid,
+      .setup-grid,
+      .actions {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -586,7 +601,7 @@
     <main>
       <aside class="panel controls">
         <h2 class="panel-title">Market Setup</h2>
-        <p class="panel-note">Fetch provider-backed candles, choose the market, and let the skill refresh suggestions automatically. Demo mode is available for offline proof.</p>
+        <p class="panel-note">Choose market data and run live or demo analysis.</p>
 
         <div class="segmented" role="group" aria-label="Market data mode">
           <button type="button" id="liveMode" class="active">Live</button>
@@ -612,49 +627,51 @@
           </div>
         </div>
 
-        <div class="field">
-          <label for="timeframe">Timeframe</label>
-          <select id="timeframe">
-            <option value="4h" selected>4h</option>
-            <option value="1d">1d</option>
-          </select>
-        </div>
+        <div class="setup-grid">
+          <div class="field">
+            <label for="timeframe">Timeframe</label>
+            <select id="timeframe">
+              <option value="4h" selected>4h</option>
+              <option value="1d">1d</option>
+            </select>
+          </div>
 
-        <div class="field">
-          <label for="lookback">Candles</label>
-          <input id="lookback" type="number" min="80" max="500" value="140">
-        </div>
+          <div class="field">
+            <label for="lookback">Candles</label>
+            <input id="lookback" type="number" min="80" max="500" value="140">
+          </div>
 
-        <div class="field">
-          <label for="visibleCandles">Visible Candles</label>
-          <input id="visibleCandles" type="number" min="30" max="500" value="120">
-        </div>
+          <div class="field">
+            <label for="visibleCandles">Visible</label>
+            <input id="visibleCandles" type="number" min="30" max="500" value="120">
+          </div>
 
-        <div class="field">
-          <label for="riskProfile">Risk Profile</label>
-          <select id="riskProfile">
-            <option value="conservative">Conservative</option>
-            <option value="balanced" selected>Balanced</option>
-            <option value="aggressive">Aggressive</option>
-          </select>
-        </div>
+          <div class="field">
+            <label for="riskProfile">Risk</label>
+            <select id="riskProfile">
+              <option value="conservative">Conservative</option>
+              <option value="balanced" selected>Balanced</option>
+              <option value="aggressive">Aggressive</option>
+            </select>
+          </div>
 
-        <div class="field">
-          <label for="provider">Provider</label>
-          <select id="provider">
-            <option value="coingecko" selected>CoinGecko</option>
-            <option value="cmc">CMC with CoinGecko fallback</option>
-          </select>
-        </div>
+          <div class="field">
+            <label for="provider">Provider</label>
+            <select id="provider">
+              <option value="coingecko" selected>CoinGecko</option>
+              <option value="cmc">CMC fallback</option>
+            </select>
+          </div>
 
-        <div class="field">
-          <label for="refreshSeconds">Auto Check Interval</label>
-          <select id="refreshSeconds">
-            <option value="15">15 seconds</option>
-            <option value="30" selected>30 seconds</option>
-            <option value="60">1 minute</option>
-            <option value="300">5 minutes</option>
-          </select>
+          <div class="field">
+            <label for="refreshSeconds">Interval</label>
+            <select id="refreshSeconds">
+              <option value="15">15 sec</option>
+              <option value="30" selected>30 sec</option>
+              <option value="60">1 min</option>
+              <option value="300">5 min</option>
+            </select>
+          </div>
         </div>
 
         <div class="toggle-row">
