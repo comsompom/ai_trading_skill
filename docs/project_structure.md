@@ -24,9 +24,29 @@ ai_trading_skill/
   docs/                  Strategy and project documentation
   indicators/            Native and ported indicator implementations
   skill/                 Core strategy Skill, recommendation Skill, schemas, and Skill spec
+  skills/                Agent-facing SKILL.md definitions for the implemented skills
   tests/                 Unit and integration tests
   MT4Indicators/         Original MT4 indicator source references
   MT4EAS/                Original MT4 EA source references
+```
+
+## Agent Skill Definitions
+
+The repository has two Codex-style skill descriptions:
+
+```text
+skills/cmc-strategy-skill/SKILL.md
+skills/indicator-recommendation-skill/SKILL.md
+```
+
+These files are agent-facing operating instructions. They describe when to use each skill, the expected prompt behavior, required inputs, deterministic logic, API surfaces, output requirements, validation commands, and safety boundaries.
+
+They intentionally do not replace the Python package in `skill/`:
+
+```text
+skill/strategy_skill.py                    runtime BUY/SELL/HOLD strategy implementation
+skill/indicator_recommendation_skill.py    runtime historical indicator-fit implementation
+skills/*/SKILL.md                          agent prompt/workflow documentation
 ```
 
 ## Runtime Surfaces
@@ -139,6 +159,12 @@ Main file:
 skill/strategy_skill.py
 ```
 
+Agent-facing skill file:
+
+```text
+skills/cmc-strategy-skill/SKILL.md
+```
+
 Important functions:
 
 ```text
@@ -184,6 +210,12 @@ Main file:
 
 ```text
 skill/indicator_recommendation_skill.py
+```
+
+Agent-facing skill file:
+
+```text
+skills/indicator-recommendation-skill/SKILL.md
 ```
 
 Important functions:

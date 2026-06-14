@@ -2,7 +2,7 @@
 
 This Track 2 Skill is a CMC-powered deterministic, backtestable crypto strategy based on our own indicator logic and analysis. It does not sign transactions or execute live trades.
 
-CoinMarketCap is the primary provider when candles are not supplied in the request. Binance remains a local fallback for no-key development. BNB AI Agent SDK usage is optional bonus/demo work and is not required by the core strategy.
+CoinMarketCap is the primary provider when candles are not supplied in the request. When `provider=cmc` is used without `CMC_API_KEY`, local development can fall back to CoinGecko when `CMC_FALLBACK_PROVIDER=coingecko`. Binance remains available as an explicit provider option. BNB AI Agent SDK usage is optional bonus/demo work and is not required by the core strategy.
 
 Demo video for this first implemented indicator-based Strategy Skill:
 
@@ -16,6 +16,16 @@ Demo video for the related Indicator Recommendation Skill:
 
 - Normalized OHLCV candles with `symbol`, `timeframe`, `timestamp`, `open`, `high`, `low`, `close`, and `volume`.
 - `risk_profile`: `conservative`, `balanced`, or `aggressive`.
+
+## Agent Skill File
+
+The agent-facing `SKILL.md` for this strategy lives at:
+
+```text
+skills/cmc-strategy-skill/SKILL.md
+```
+
+It contains the operating prompt, workflow, scoring gates, risk/probability model, runtime interfaces, output requirements, validation commands, and non-execution boundaries for agents that need to run or explain this strategy.
 
 ## Implemented First-Version Logic
 
@@ -70,3 +80,9 @@ The output groups indicators into:
 The Flask UI exposes this workflow on the `Indicator Fit` tab. API callers can use `POST /indicator-recommendations` and inspect `GET /indicator-recommendations/spec`.
 
 Full details are documented in `docs/indicator_recommendation_skill.md`.
+
+The agent-facing `SKILL.md` for the companion workflow lives at:
+
+```text
+skills/indicator-recommendation-skill/SKILL.md
+```

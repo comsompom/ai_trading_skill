@@ -1,0 +1,3 @@
+display_name: Indicator Recommendation Skill
+short_description: Historical indicator-fit analysis for selecting crypto strategy indicators by symbol and timeframe.
+default_prompt: Evaluate the selected crypto symbol and timeframe against historical candles. Recommend which implemented indicators to use, confirm, or avoid, with suitability metrics and advisory-only settings.

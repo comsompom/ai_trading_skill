@@ -19,6 +19,17 @@ Indicator Recommendation Skill demo video:
 - [Project structure and workflow](docs/project_structure.md)
 - [Strategy specification](docs/strategy_spec.md)
 - [Indicator Recommendation Skill](docs/indicator_recommendation_skill.md)
+- [Agent Skill: CMC Strategy Skill](skills/cmc-strategy-skill/SKILL.md)
+- [Agent Skill: Indicator Recommendation Skill](skills/indicator-recommendation-skill/SKILL.md)
+
+## Agent Skill Definitions
+
+This repository includes two Codex-style `SKILL.md` files for agent-facing operation:
+
+- `skills/cmc-strategy-skill/SKILL.md`: describes the deterministic CMC-powered strategy workflow, BUY/SELL/HOLD scoring logic, risk assumptions, Flask/FastMCP interfaces, and non-execution boundaries.
+- `skills/indicator-recommendation-skill/SKILL.md`: describes the historical indicator-fit workflow, suitability scoring, recommendation buckets, API surface, and advisory-only boundaries.
+
+The Python implementation remains under `skill/`. The `skills/` directory is documentation and prompt guidance for agents that need to operate or explain the two implemented skills.
 
 ## Setup
 
@@ -232,7 +243,7 @@ curl -X POST http://localhost:5000/analyze \
   -d '{"symbol":"BTCUSDT","timeframe":"1h","market_data":[]}'
 ```
 
-If `market_data` is empty and no provider is specified, the app uses `provider=cmc`. Without `CMC_API_KEY`, it falls back to CoinGecko for local development. You can still force Binance directly with `provider=binance`.
+If `market_data` is empty and no provider is specified, the app uses `provider=cmc`. Without `CMC_API_KEY`, it falls back to CoinGecko for local development when `CMC_FALLBACK_PROVIDER=coingecko`. You can still force Binance directly with `provider=binance`.
 
 ## Recommend Indicators For A Symbol
 

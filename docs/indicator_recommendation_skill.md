@@ -2,6 +2,14 @@
 
 The Indicator Recommendation Skill checks a user-selected symbol against historical candle data and recommends which implemented indicators are best suited for that symbol and timeframe. It is separate from the main `BUY` / `SELL` / `HOLD` strategy skill.
 
+The agent-facing `SKILL.md` for this workflow lives at:
+
+```text
+skills/indicator-recommendation-skill/SKILL.md
+```
+
+It describes the operating prompt, workflow, historical suitability scoring, recommendation buckets, API surface, validation commands, and advisory-only boundaries for agents that need to run or explain this skill.
+
 The first implemented indicator-based Strategy Skill that this recommendation skill builds on is shown in this demo video:
 
 - https://www.youtube.com/watch?v=TA6gRVvitJs

@@ -1,0 +1,3 @@
+display_name: CMC Strategy Skill
+short_description: Deterministic crypto strategy analysis returning BUY, SELL, or HOLD with risk assumptions.
+default_prompt: Analyze the provided crypto market setup with the project's deterministic CMC-powered strategy. Return BUY, SELL, or HOLD with score breakdown, indicator evidence, probability model, and non-executing risk assumptions.

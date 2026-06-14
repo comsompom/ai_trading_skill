@@ -2,6 +2,13 @@
 
 This document describes only the indicators and strategy logic currently implemented in the app. It does not list MT4 files that are present in the repository but not yet ported into the Python decision engine.
 
+Agent-facing skill descriptions are maintained separately:
+
+```text
+skills/cmc-strategy-skill/SKILL.md
+skills/indicator-recommendation-skill/SKILL.md
+```
+
 Demo video for the first implemented indicator-based Strategy Skill:
 
 - https://www.youtube.com/watch?v=TA6gRVvitJs
