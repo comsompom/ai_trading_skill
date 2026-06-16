@@ -1,0 +1,3 @@
+display_name: Rolling Structure Indicator
+short_description: Exact rolling support/resistance breakout and midpoint structure proxy logic.
+default_prompt: Explain or apply the rolling structure indicator logic, including support/resistance window selection, breakout states, midpoint bias, and strategy structure scoring.

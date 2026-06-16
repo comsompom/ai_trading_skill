@@ -1,0 +1,3 @@
+display_name: MACD OsMA Indicator
+short_description: Exact MACD OsMA histogram, slope, candle confirmation, strength, and momentum scoring logic.
+default_prompt: Explain or apply the MACD OsMA indicator logic, including EMA warm-up, MACD line, signal EMA, OsMA, slope/candle confirmation, and strategy momentum scoring.

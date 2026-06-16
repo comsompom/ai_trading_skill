@@ -1,0 +1,3 @@
+display_name: Fisher Yur4ik Indicator
+short_description: Exact Fisher transform regime logic with smoothing, thresholds, strength, and strategy scoring.
+default_prompt: Explain or apply the Fisher_Yur4ik indicator logic, including rolling high/low normalization, recursive Fisher values, threshold signals, and regime scoring.

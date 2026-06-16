@@ -1,0 +1,3 @@
+display_name: APEX Indi Indicator
+short_description: Exact A-P-E-X breakout pattern trigger logic for the repository's APEX_Indi port.
+default_prompt: Explain or apply the APEX_Indi indicator logic, including BUY/SELL A-P-E state machines, X breakout events, freshness, strength decay, and trigger scoring.

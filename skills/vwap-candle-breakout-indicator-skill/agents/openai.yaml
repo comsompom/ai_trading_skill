@@ -1,0 +1,3 @@
+display_name: VWAP Candle Breakout Indicator
+short_description: Exact session VWAP cross, slope-line confirmation, body threshold, strength, and trigger scoring logic.
+default_prompt: Explain or apply the VWAP Candle Breakout indicator logic, including session VWAP reset, slope line, body threshold, breakout conditions, and strategy trigger scoring.

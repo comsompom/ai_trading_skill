@@ -1,0 +1,3 @@
+display_name: RSI MFI MA3 Indicator
+short_description: Exact RSI, MFI, combined EMA baseline, vote, strength, and momentum scoring logic.
+default_prompt: Explain or apply the RSI_MFI_MA3 indicator logic, including RSI smoothing, MFI flow, combined MA baseline, bullish/bearish votes, and strategy momentum scoring.

@@ -1,0 +1,3 @@
+display_name: ABCD Hand v4 Indicator
+short_description: Exact A-B-C swing projection logic for the repository's ABCD_hand_v4 structure indicator.
+default_prompt: Explain or apply the ABCD_hand_v4 indicator logic, including swing inference, D target projection, Fibonacci levels, signal direction, strength, and StrategySkill structure integration.

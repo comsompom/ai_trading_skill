@@ -1,0 +1,3 @@
+display_name: Power Candle Indicator
+short_description: Exact large-range impulse candle proxy logic with multiplier threshold and trigger scoring.
+default_prompt: Explain or apply the power candle indicator logic, including average range, multiplier threshold, candle-body direction, fixed strength, and strategy trigger scoring.

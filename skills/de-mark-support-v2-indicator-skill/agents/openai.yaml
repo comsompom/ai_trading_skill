@@ -1,0 +1,3 @@
+display_name: De Mark Support v2 Indicator
+short_description: Exact DeMark support/resistance line, TD breakout, target, and strength logic.
+default_prompt: Explain or apply the De_Mark_Support_V2 indicator logic, including anchor selection, line construction, TD1/TD2/TD3 breakouts, targets, and structure scoring.

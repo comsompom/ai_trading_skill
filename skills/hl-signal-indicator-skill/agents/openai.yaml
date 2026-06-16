@@ -1,0 +1,3 @@
+display_name: HL Signal Indicator
+short_description: Exact UTC session high/low expansion failure logic for the repository's HL_Signal port.
+default_prompt: Explain or apply the HL_Signal indicator logic, including session resets, BUY/SELL event conditions, freshness, strength decay, and structure scoring.
